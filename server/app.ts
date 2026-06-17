@@ -5,6 +5,7 @@ export const app = express();
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import "dotenv/config";
+import errorHandlerMiddleware from "./middleware/error";
 
 app.use(express.json({ limit: "50mb" }));
 app.use(cookieParser());
@@ -27,3 +28,5 @@ app.get("/*splat", (req: Request, res: Response, next: NextFunction) => {
   err.statusCode = 404;
   next(err);
 });
+
+app.use(errorHandlerMiddleware);
