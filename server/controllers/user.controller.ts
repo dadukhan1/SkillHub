@@ -1,6 +1,6 @@
 /** @format */
 
-import userModel from "../models/user.model";
+import userModel, { IUser } from "../models/user.model";
 import ErrorHandler from "../utils/ErrorHandler";
 import catchAsyncErrors from "../middleware/catchAsyncErrors";
 import { NextFunction, Request, Response } from "express";
@@ -68,3 +68,38 @@ export const createActivationToken = (user: any): IActivationToken => {
 
   return { token, activationCode };
 };
+
+interface IActivationRequest {
+  activationToken: string;
+  activationCode: string;
+}
+
+export const userActivation = catchAsyncErrors(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { activationCode, activationToken } = req.body as IActivationRequest;
+
+    const newUser: { user: IUser; activationCode: string } = jwt.verify(
+      activationToken,
+      process.env.ACTIVATION_SECRET as string,
+    ) as { user: IUser; activationCode: string };
+
+    if (newUser.activationCode !== activationCode) {
+      return next(new ErrorHandler("Invalid activation code", 400));
+    }
+
+    const { name, email, password } = newUser.user;
+
+    const existingUser = await userModel.findOne({ email });
+
+    if (existingUser) {
+      return next(new ErrorHandler("Email already exists.", 400));
+    }
+
+    await userModel.create({ name, email, password });
+
+    return res.status(201).json({
+      success: true,
+      message: "Account activated successfully",
+    });
+  },
+);
