@@ -6,6 +6,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import "dotenv/config";
 import errorHandlerMiddleware from "./middleware/error";
+import userRouter from "./routes/user.route";
 
 app.use(express.json({ limit: "50mb" }));
 app.use(cookieParser());
@@ -15,6 +16,9 @@ app.use(
     origin: process.env.ORIGIN,
   }),
 );
+
+// routes
+app.use("/api/v1", userRouter);
 
 app.get("/test", (req: Request, res: Response, next: NextFunction) => {
   res.json({

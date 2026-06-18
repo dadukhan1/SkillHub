@@ -1,0 +1,122 @@
+<!-- @format -->
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SkillHub Account Verification</title>
+
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: #f4f7fb;
+        font-family: Arial, Helvetica, sans-serif;
+        color: #333;
+      }
+
+      .container {
+        max-width: 600px;
+        margin: 40px auto;
+        background: #ffffff;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      }
+
+      .header {
+        background: #2563eb;
+        color: white;
+        text-align: center;
+        padding: 30px 20px;
+      }
+
+      .header h1 {
+        margin: 0;
+        font-size: 28px;
+      }
+
+      .content {
+        padding: 40px 30px;
+        line-height: 1.8;
+      }
+
+      .activation-code {
+        background: #eff6ff;
+        border: 2px dashed #2563eb;
+        color: #2563eb;
+        text-align: center;
+        font-size: 32px;
+        font-weight: bold;
+        padding: 18px;
+        margin: 25px 0;
+        border-radius: 10px;
+        letter-spacing: 4px;
+      }
+
+      .footer {
+        background: #f8fafc;
+        text-align: center;
+        padding: 20px;
+        font-size: 14px;
+        color: #64748b;
+      }
+
+      .footer a {
+        color: #2563eb;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>SkillHub</h1>
+        <p>Learn. Build. Grow.</p>
+      </div>
+
+      ```
+      <div class="content">
+        <h2>Welcome, <%= user.name %>! 👋</h2>
+
+        <p>
+          Thank you for joining <strong>SkillHub</strong>. We're excited to help
+          you grow your skills and advance your career.
+        </p>
+
+        <p>To verify your account, please use the activation code below:</p>
+
+        <div class="activation-code"><%= activationCode %></div>
+
+        <p>
+          This code will expire in <strong>5 minutes</strong> for security
+          reasons.
+        </p>
+
+        <p>
+          If you did not create a SkillHub account, you can safely ignore this
+          email.
+        </p>
+
+        <p>Happy Learning! 🚀</p>
+
+        <p>
+          <strong>The SkillHub Team</strong>
+        </p>
+      </div>
+
+      <div class="footer">
+        <p>
+          Need help?
+          <a href="mailto:support@skillhub.com"> support@skillhub.com </a>
+        </p>
+
+        <p>© 2026 SkillHub. All rights reserved.</p>
+      </div>
+      ```
+    </div>
+  </body>
+</html>
