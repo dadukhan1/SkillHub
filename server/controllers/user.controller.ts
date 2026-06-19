@@ -9,6 +9,7 @@ import jwt from "jsonwebtoken";
 import { sendMail } from "../utils/sendMail";
 import errorHandlerMiddleware from "../middleware/error";
 import { sendToken } from "../utils/jwt";
+import { redis } from "../utils/redis";
 
 interface IRegistrationBody {
   name: string;
@@ -139,7 +140,10 @@ export const userLogout = catchAsyncErrors(
   async (req: Request, res: Response, next: NextFunction) => {
     res.clearCookie("accessToken");
     res.clearCookie("refreshToken");
-    res.status(200).json({
+
+    redis.del(req.user?._id.toString() || "");
+
+    return res.status(200).json({
       success: true,
       message: "Logged out successfully",
     });
