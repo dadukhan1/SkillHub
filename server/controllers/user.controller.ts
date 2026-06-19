@@ -7,6 +7,8 @@ import { NextFunction, Request, Response } from "express";
 import "dotenv/config";
 import jwt from "jsonwebtoken";
 import { sendMail } from "../utils/sendMail";
+import errorHandlerMiddleware from "../middleware/error";
+import { sendToken } from "../utils/jwt";
 
 interface IRegistrationBody {
   name: string;
@@ -100,6 +102,46 @@ export const userActivation = catchAsyncErrors(
     return res.status(201).json({
       success: true,
       message: "Account activated successfully",
+    });
+  },
+);
+
+interface ILoginRequest {
+  email: string;
+  password: string;
+}
+
+export const userLogin = catchAsyncErrors(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { email, password } = req.body as ILoginRequest;
+
+    if (!email || !password) {
+      return next(new ErrorHandler("Please enter email and password.", 400));
+    }
+
+    const user = await userModel.findOne({ email }).select("+password");
+
+    if (!user) {
+      return next(new ErrorHandler("Invalid email or password", 400));
+    }
+
+    const isPasswordMatch = await user.comparePassword(password);
+
+    if (!isPasswordMatch) {
+      return next(new ErrorHandler("Invalid email or password", 400));
+    }
+
+    sendToken(user, 200, res);
+  },
+);
+
+export const userLogout = catchAsyncErrors(
+  async (req: Request, res: Response, next: NextFunction) => {
+    res.clearCookie("accessToken");
+    res.clearCookie("refreshToken");
+    res.status(200).json({
+      success: true,
+      message: "Logged out successfully",
     });
   },
 );
