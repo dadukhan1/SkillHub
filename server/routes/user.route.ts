@@ -2,6 +2,12 @@
 
 import express from "express";
 import {
+  getUserInfo,
+  socialAuth,
+  updateAccessToken,
+  updatePassword,
+  updateProfilePicture,
+  updateUserInfo,
   userActivation,
   userLogin,
   userLogout,
@@ -14,5 +20,12 @@ userRouter.post("/register", userRegistration);
 userRouter.post("/activation", userActivation);
 userRouter.post("/login", userLogin);
 userRouter.get("/logout", isAuthenticated, userLogout);
+userRouter.get("/refresh-token", updateAccessToken);
+userRouter.get("/social-auth", socialAuth);
+
+userRouter.get("/me", isAuthenticated, getUserInfo);
+userRouter.put("/update-user-info", isAuthenticated, updateUserInfo);
+userRouter.put("/update-user-password", isAuthenticated, updatePassword);
+userRouter.put("/update-profile-picture", isAuthenticated, updateProfilePicture);
 
 export default userRouter;
