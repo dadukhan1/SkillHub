@@ -26,7 +26,7 @@ export const sendToken = (user: IUser, statusCode: number, res: Response) => {
     10,
   );
   const refreshTokenExpires = parseInt(
-    process.env.REFRESH_TOKEN_EXPIRES || "1200",
+    process.env.REFRESH_TOKEN_EXPIRES || "259200",
     10,
   );
 
@@ -44,6 +44,7 @@ export const sendToken = (user: IUser, statusCode: number, res: Response) => {
     maxAge: refreshTokenExpires * 1000,
     httpOnly: true,
     sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
   };
 
   res.cookie("accessToken", accessToken, accessTokenOptions);
