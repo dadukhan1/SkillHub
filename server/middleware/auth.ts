@@ -40,7 +40,7 @@ export const authorizeRoles = (...roles: string[]) => {
     if (!roles.includes(req.user?.role || "")) {
       return next(
         new ErrorHandler("You are not allowed to access this resource", 403),
-      );f
+      );
     }
     next();
   };
