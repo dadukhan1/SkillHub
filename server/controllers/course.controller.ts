@@ -33,11 +33,16 @@ export const uploadCourse = catchAsyncErrors(
 export const editCourse = catchAsyncErrors(
   async (req: Request, res: Response, next: NextFunction) => {
     const data = req.body;
+    const courseId = req.params.id;
 
     const thumbnail = data.thumbnail;
 
-    if (thumbnail) {
-      await cloudinary.uploader.destroy(thumbnail.public_id);
+    const course = await CourseModel.findById(courseId);
+
+    if (thumbnail ) {
+      if (course?.thumbnail && typeof course.thumbnail === 'object' && 'public_id' in course.thumbnail) {
+        await cloudinary.uploader.destroy((course.thumbnail as any).public_id);
+      }
 
       const myCloud = await cloudinary.uploader.upload(thumbnail, {
         folder: "courses",
@@ -49,9 +54,7 @@ export const editCourse = catchAsyncErrors(
       };
     }
 
-    const courseId = req.params.id;
-
-    const course = await CourseModel.findByIdAndUpdate(
+    const updatedCourse = await CourseModel.findByIdAndUpdate(
       courseId,
       { $set: data },
       { new: true },
@@ -59,7 +62,7 @@ export const editCourse = catchAsyncErrors(
 
     return res.status(200).json({
       success: true,
-      course,
+      updatedCourse,
     });
   },
 );
