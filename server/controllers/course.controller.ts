@@ -6,6 +6,7 @@ import cloudinary from "../utils/cloudinary";
 import { createCourse } from "../services/course.service";
 import CourseModel from "../models/course.model";
 import { redis } from "../utils/redis";
+import ErrorHandler from "../utils/ErrorHandler";
 
 export const uploadCourse = catchAsyncErrors(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -126,6 +127,33 @@ export const getAllCourses = catchAsyncErrors(
     return res.status(200).json({
       success: true,
       courses,
+    });
+  },
+);
+
+// Get courses content --- only for valid users
+export const getCoursesByUser = catchAsyncErrors(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const userCoursesList = req.user?.courses;
+    const courseId = req.params.id;
+
+    const courseExists = userCoursesList?.find(
+      (course: any) => course._id.toString() === courseId,
+    );
+
+    if (!courseExists) {
+      return next(
+        new ErrorHandler("Your not eligible to access this course.", 400),
+      );
+    }
+
+    const course = await CourseModel.findById(courseId);
+
+    const content = course?.courseData;
+
+    return res.status(200).json({
+      success: true,
+      content,
     });
   },
 );
