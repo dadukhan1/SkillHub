@@ -18,7 +18,6 @@ export const isAuthenticated = catchAsyncErrors(
     }
 
     const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN as string);
-    console.log("Decoded Token:", decoded);
 
     if (!decoded) {
       return next(new ErrorHandler("Invalid or expired token", 401));
