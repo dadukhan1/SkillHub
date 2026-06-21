@@ -265,3 +265,105 @@ export const addAnswer = catchAsyncErrors(
     });
   },
 );
+
+interface IAddReviewData {
+  review: string;
+  courseId: string;
+  rating: number;
+  userId: string;
+}
+
+export const addReview = catchAsyncErrors(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { review, rating } = req.body as IAddReviewData;
+    const userCoursesList = req.user?.courses;
+
+    const courseId = req.params.id;
+
+    const courseExists = userCoursesList?.find((course: any) =>
+      course._id.equals(courseId),
+    );
+
+    if (!courseExists) {
+      return next(new ErrorHandler("Your not eligible to this course", 400));
+    }
+
+    const course = await CourseModel.findById(courseId);
+
+    const reviewData = {
+      user: req.user,
+      comment: review,
+      rating,
+    } as any;
+
+    course?.reviews.push(reviewData);
+
+    let avg = 0;
+
+    course?.reviews.forEach((review) => {
+      avg += review.rating;
+    });
+    if (course) {
+      course!.ratings = avg / course.reviews.length; // Calculate average rating
+    }
+
+    await course?.save();
+
+    const notification = {
+      title: "New Review Added",
+      message: `${req.user?.name} has added a new review for your course ${course?.name}.`,
+    };
+
+    // Create notification
+    // Create notification
+
+    return res.status(200).json({
+      success: true,
+      course,
+    });
+  },
+);
+
+interface IAddReviewData {
+  comment: string;
+  courseId: string;
+  reviewId: string;
+}
+
+export const addReviewReply = catchAsyncErrors(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { comment, courseId, reviewId } = req.body as IAddReviewData;
+
+    const course = await CourseModel.findById(courseId);
+
+    if (!course) {
+      return next(new ErrorHandler("Course not found", 404));
+    }
+
+    const review = course?.reviews.find((review) =>
+      review._id.equals(reviewId),
+    );
+
+    if (!review) {
+      return next(new ErrorHandler("Review not found", 404));
+    }
+
+    const replyData = {
+      user: req.user,
+      comment,
+    } as any;
+
+    if (!review.commentReplies) {
+      review.commentReplies = [];
+    }
+
+    review.commentReplies.push(replyData);
+
+    await course?.save();
+
+    return res.status(200).json({
+      success: true,
+      course,
+    });
+  },
+);
