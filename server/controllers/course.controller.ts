@@ -9,6 +9,7 @@ import { redis } from "../utils/redis";
 import ErrorHandler from "../utils/ErrorHandler";
 import mongoose from "mongoose";
 import { sendMail } from "../utils/sendMail";
+import NotificationModel from "../models/notification.model";
 
 export const uploadCourse = catchAsyncErrors(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -191,6 +192,12 @@ export const addQuestion = catchAsyncErrors(
 
     courseContent.questions.push(newQuestion);
 
+    await NotificationModel.create({
+      user: req.user?._id.toString(),
+      title: "New Question",
+      message: `${req.user?.name} has asked a new question in your course ${courseContent.title}.`,
+    });
+
     await course?.save();
 
     return res.status(200).json({
@@ -243,21 +250,23 @@ export const addAnswer = catchAsyncErrors(
 
     await course?.save();
 
-    if (req.user?._id === question.user._id) {
-      // send notification
-    } else {
-      const data = {
-        name: question.user.name,
-        title: courseContent.title,
-      };
+    await NotificationModel.create({
+      user: question.user._id.toString(),
+      title: "New Answer",
+      message: `${req.user?.name} has answered your question in the course ${courseContent.title}.`,
+    });
 
-      await sendMail({
-        email: question.user.email,
-        subject: "New Reply Received",
-        template: "question-reply.ejs",
-        data,
-      });
-    }
+    const data = {
+      name: question.user.name,
+      title: courseContent.title,
+    };
+
+    await sendMail({
+      email: question.user.email,
+      subject: "New Reply Received",
+      template: "question-reply.ejs",
+      data,
+    });
 
     return res.status(200).json({
       success: true,
@@ -315,7 +324,11 @@ export const addReview = catchAsyncErrors(
     };
 
     // Create notification
-    // Create notification
+    await NotificationModel.create({
+      user: req.user?._id.toString(),
+      title: "New Review Added",
+      message: `${req.user?.name} has added a new review for your course ${course?.name}.`,
+    });
 
     return res.status(200).json({
       success: true,
