@@ -318,11 +318,6 @@ export const addReview = catchAsyncErrors(
 
     await course?.save();
 
-    const notification = {
-      title: "New Review Added",
-      message: `${req.user?.name} has added a new review for your course ${course?.name}.`,
-    };
-
     // Create notification
     await NotificationModel.create({
       user: req.user?._id.toString(),
