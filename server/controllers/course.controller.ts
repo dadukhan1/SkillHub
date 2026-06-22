@@ -3,7 +3,7 @@
 import { NextFunction, Request, Response } from "express";
 import catchAsyncErrors from "../middleware/catchAsyncErrors";
 import cloudinary from "../utils/cloudinary";
-import { createCourse } from "../services/course.service";
+import { createCourse, getAllCoursesService } from "../services/course.service";
 import CourseModel from "../models/course.model";
 import { redis } from "../utils/redis";
 import ErrorHandler from "../utils/ErrorHandler";
@@ -372,6 +372,18 @@ export const addReviewReply = catchAsyncErrors(
     return res.status(200).json({
       success: true,
       course,
+    });
+  },
+);
+
+// Get all courses ------ admin only
+export const getAllCoursesForAdmin = catchAsyncErrors(
+  async (req: Request, res: Response) => {
+    const courses = await getAllCoursesService();
+
+    return res.status(200).json({
+      success: true,
+      courses,
     });
   },
 );

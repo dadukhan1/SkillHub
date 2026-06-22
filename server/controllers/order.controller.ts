@@ -4,7 +4,7 @@ import { NextFunction, Request, Response } from "express";
 import catchAsyncErrors from "../middleware/catchAsyncErrors";
 import userModel from "../models/user.model";
 import ErrorHandler from "../utils/ErrorHandler";
-import { newOrder } from "../services/order.service";
+import { getAllOrdersService, newOrder } from "../services/order.service";
 import CourseModel from "../models/course.model";
 import { sendMail } from "../utils/sendMail";
 import NotificationModel from "../models/notification.model";
@@ -83,6 +83,18 @@ export const createOrder = catchAsyncErrors(
     return res.status(200).json({
       success: true,
       order: course,
+    });
+  },
+);
+
+// Get all orders ------ admin only
+export const getAllOrders = catchAsyncErrors(
+  async (req: Request, res: Response) => {
+    const orders = await getAllOrdersService();
+
+    return res.status(200).json({
+      success: true,
+      orders,
     });
   },
 );

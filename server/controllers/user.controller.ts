@@ -10,7 +10,7 @@ import { sendMail } from "../utils/sendMail";
 import errorHandlerMiddleware from "../middleware/error";
 import { accessTokenOptions, sendToken } from "../utils/jwt";
 import { redis } from "../utils/redis";
-import { getUserById } from "../services/user.service";
+import { getAllUsersService, getUserById } from "../services/user.service";
 import cloudinary from "../utils/cloudinary";
 
 interface IRegistrationBody {
@@ -330,6 +330,18 @@ export const updateProfilePicture = catchAsyncErrors(
     return res.status(200).json({
       success: true,
       user,
+    });
+  },
+);
+
+// Get all users ------ admin only
+export const getAllUsers = catchAsyncErrors(
+  async (req: Request, res: Response) => {
+    const users = await getAllUsersService();
+
+    return res.status(200).json({
+      success: true,
+      users,
     });
   },
 );
