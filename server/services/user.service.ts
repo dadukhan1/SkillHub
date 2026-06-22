@@ -14,3 +14,8 @@ export const getUserById = async (id: string) => {
 export const getAllUsersService = async () => {
   return await userModel.find().sort({ createAt: -1 });
 };
+
+// update user role
+export const updateUserRoleService = async (id: any, role: any) => {
+  return await userModel.findByIdAndUpdate(id, { role }, { new: true });
+};

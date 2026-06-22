@@ -10,7 +10,11 @@ import { sendMail } from "../utils/sendMail";
 import errorHandlerMiddleware from "../middleware/error";
 import { accessTokenOptions, sendToken } from "../utils/jwt";
 import { redis } from "../utils/redis";
-import { getAllUsersService, getUserById } from "../services/user.service";
+import {
+  getAllUsersService,
+  getUserById,
+  updateUserRoleService,
+} from "../services/user.service";
 import cloudinary from "../utils/cloudinary";
 
 interface IRegistrationBody {
@@ -342,6 +346,18 @@ export const getAllUsers = catchAsyncErrors(
     return res.status(200).json({
       success: true,
       users,
+    });
+  },
+);
+
+// udpate user roles --- admin only
+export const updateUserRole = catchAsyncErrors(
+  async (req: Request, res: Response) => {
+    const { id, role } = req.body;
+    const user = updateUserRoleService(id, role);
+    return res.status(200).json({
+      success: true,
+      user,
     });
   },
 );

@@ -9,6 +9,7 @@ import {
   updatePassword,
   updateProfilePicture,
   updateUserInfo,
+  updateUserRole,
   userActivation,
   userLogin,
   userLogout,
@@ -37,6 +38,12 @@ userRouter.get(
   isAuthenticated,
   authorizeRoles("admin"),
   getAllUsers,
+);
+userRouter.put(
+  "/update-user-role",
+  isAuthenticated,
+  authorizeRoles("admin"),
+  updateUserRole,
 );
 
 export default userRouter;
