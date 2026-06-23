@@ -7,7 +7,7 @@ import {
   getOrdersAnalytics,
   getUserAnalytics,
 } from "../controllers/anaylytics.controller";
-const analyticsRouter = express();
+const analyticsRouter = express.Router();
 
 analyticsRouter.get(
   "/get-users-analytics",
