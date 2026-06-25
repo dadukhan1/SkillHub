@@ -6,11 +6,9 @@ interface DashboardHeaderProps {
 }
 
 const DashboardHeader: FC<DashboardHeaderProps> = ({ title, description }) => (
-  <div className="mb-8">
-    <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-    {description && (
-      <p className="mt-1 text-sm text-muted">{description}</p>
-    )}
+  <div>
+    <h1 className="font-display text-2xl font-medium tracking-[-0.02em]">{title}</h1>
+    {description && <p className="mt-2 text-[14px] leading-relaxed text-muted">{description}</p>}
   </div>
 );
 

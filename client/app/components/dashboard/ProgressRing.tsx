@@ -10,8 +10,8 @@ interface ProgressRingProps {
 
 const ProgressRing: FC<ProgressRingProps> = ({
   progress,
-  size = 56,
-  strokeWidth = 4,
+  size = 48,
+  strokeWidth = 3,
   className,
 }) => {
   const radius = (size - strokeWidth) / 2;
@@ -19,33 +19,12 @@ const ProgressRing: FC<ProgressRingProps> = ({
   const offset = circumference - (progress / 100) * circumference;
 
   return (
-    <div className={cn("relative inline-flex", className)}>
+    <div className={cn("relative inline-flex", className)} aria-hidden>
       <svg width={size} height={size} className="-rotate-90">
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={strokeWidth}
-          className="text-border"
-        />
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={strokeWidth}
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          strokeLinecap="round"
-          className="text-accent transition-all duration-700 ease-out"
-        />
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="currentColor" strokeWidth={strokeWidth} className="text-border" />
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" className="text-accent" />
       </svg>
-      <span className="absolute inset-0 flex items-center justify-center text-xs font-semibold">
-        {progress}%
-      </span>
+      <span className="font-mono absolute inset-0 flex items-center justify-center text-[10px]">{progress}%</span>
     </div>
   );
 };
