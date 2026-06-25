@@ -191,6 +191,8 @@ export const updateAccessToken = catchAsyncErrors(
 
     res.cookie("accessToken", accessToken, accessTokenOptions);
 
+    await redis.set(user._id.toString(), JSON.stringify(user), "EX", 604800); // 7 days
+
     return res.status(200).json({ sucess: true, accessToken });
   },
 );
