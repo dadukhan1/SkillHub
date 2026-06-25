@@ -14,7 +14,7 @@ const CtaSection: FC = () => (
           Free to start — no credit card required.
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <Link href="/dashboard">
+          <Link href="/signup">
             <Button size="lg">Get started free</Button>
           </Link>
           <Link href="#courses">

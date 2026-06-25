@@ -26,7 +26,7 @@ const Hero: FC = () => {
             </p>
 
             <div className="animate-fade-up-delay-2 mt-9 flex flex-col items-center gap-3 sm:flex-row lg:justify-start">
-              <Link href="/dashboard">
+              <Link href="/signup">
                 <Button size="lg">Start learning free</Button>
               </Link>
               <Link href="#courses">

@@ -40,13 +40,13 @@ const Header: FC = () => {
 
         <div className="flex items-center gap-2.5">
           <Link
-            href="/dashboard"
+            href="/signin"
             className="hidden text-[13px] text-muted transition-colors duration-200 hover:text-foreground sm:block"
           >
             Sign in
           </Link>
           <ThemeToggle />
-          <Link href="/dashboard" className="hidden sm:block">
+          <Link href="/signup" className="hidden sm:block">
             <Button size="sm">Get started</Button>
           </Link>
 
@@ -81,8 +81,15 @@ const Header: FC = () => {
               {link.label}
             </Link>
           ))}
-          <Link href="/dashboard" onClick={() => setMenuOpen(false)} className="mt-3">
+          <Link href="/signup" onClick={() => setMenuOpen(false)} className="mt-3">
             <Button className="w-full" size="sm">Get started</Button>
+          </Link>
+          <Link
+            href="/signin"
+            onClick={() => setMenuOpen(false)}
+            className="mt-2 block rounded-[10px] px-3 py-2.5 text-center text-[13px] text-muted transition-colors hover:text-foreground"
+          >
+            Sign in
           </Link>
         </nav>
       </div>
