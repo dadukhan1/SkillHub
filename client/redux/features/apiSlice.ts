@@ -1,23 +1,19 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { createApi } from "@reduxjs/toolkit/query/react";
 import type {
   ActivateRequest,
   ApiResponse,
   GetMeResponse,
   LoginRequest,
   LoginResponse,
+  RefreshTokenResponse,
   RegisterRequest,
   RegisterResponse,
 } from "../types/auth";
-
-const baseUrl =
-  process.env.NEXT_PUBLIC_SERVER_URL ?? "http://localhost:8000/api/v1";
+import { baseQueryWithReauth } from "../utils/baseQueryWithReauth";
 
 export const apiSlice = createApi({
   reducerPath: "api",
-  baseQuery: fetchBaseQuery({
-    baseUrl,
-    credentials: "include",
-  }),
+  baseQuery: baseQueryWithReauth,
   tagTypes: ["User"],
   endpoints: (builder) => ({
     register: builder.mutation<RegisterResponse, RegisterRequest>({
@@ -42,6 +38,12 @@ export const apiSlice = createApi({
         body,
       }),
     }),
+    refreshToken: builder.mutation<RefreshTokenResponse, void>({
+      query: () => ({
+        url: "/refresh-token",
+        method: "GET",
+      }),
+    }),
     getMe: builder.query<GetMeResponse, void>({
       query: () => "/me",
       providesTags: ["User"],
@@ -60,6 +62,7 @@ export const {
   useRegisterMutation,
   useLoginMutation,
   useActivateMutation,
+  useRefreshTokenMutation,
   useGetMeQuery,
   useLogoutMutation,
 } = apiSlice;

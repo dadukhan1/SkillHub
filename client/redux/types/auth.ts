@@ -46,3 +46,9 @@ export interface ActivateRequest {
 export interface GetMeResponse extends ApiResponse {
   user: User;
 }
+
+export interface RefreshTokenResponse {
+  success?: boolean;
+  sucess?: boolean;
+  accessToken: string;
+}
