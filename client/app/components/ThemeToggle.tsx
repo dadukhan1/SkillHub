@@ -4,14 +4,30 @@ import { FC, useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 
-const ThemeToggle: FC = () => {
+interface ThemeToggleProps {
+  className?: string;
+  variant?: "default" | "inline";
+}
+
+const ThemeToggle: FC<ThemeToggleProps> = ({
+  className,
+  variant = "default",
+}) => {
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
 
   if (!mounted) {
-    return <div className="h-8 w-8 rounded-[10px] border border-border bg-card" />;
+    return (
+      <div
+        className={cn(
+          "h-8 w-8 shrink-0 rounded-[10px]",
+          variant === "default" && "border border-border bg-card",
+          className,
+        )}
+      />
+    );
   }
 
   const isDark = resolvedTheme === "dark";
@@ -21,8 +37,9 @@ const ThemeToggle: FC = () => {
       type="button"
       onClick={() => setTheme(isDark ? "light" : "dark")}
       className={cn(
-        "flex h-8 w-8 items-center justify-center rounded-[10px] border border-border bg-card text-muted",
-        "transition-colors duration-200 hover:bg-foreground/5 hover:text-foreground"
+        "flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] text-muted transition-colors duration-200 hover:bg-foreground/5 hover:text-foreground",
+        variant === "default" && "border border-border bg-card",
+        className,
       )}
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
     >

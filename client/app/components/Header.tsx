@@ -3,8 +3,12 @@
 import { FC, useState } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/redux/hooks";
+import { formatRole } from "@/lib/user";
 import ThemeToggle from "./ThemeToggle";
 import Button from "./ui/Button";
+import UserProfileMenu from "./layout/UserProfileMenu";
+import UserAvatar from "./ui/UserAvatar";
 
 const navLinks = [
   { label: "Courses", href: "#courses" },
@@ -13,52 +17,104 @@ const navLinks = [
   { label: "Pricing", href: "#pricing" },
 ];
 
+const actionClusterClass =
+  "flex items-center gap-0.5 rounded-[12px] border border-border bg-card p-0.5 shadow-soft";
+
+const clusterDivider = <div className="mx-0.5 h-5 w-px shrink-0 bg-border" aria-hidden />;
+
 const Header: FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { user, isAuthenticated, isChecking } = useAuth();
+
+  const closeMenu = () => setMenuOpen(false);
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-md">
-      <div className="mx-auto flex h-[60px] max-w-6xl items-center justify-between px-5 sm:px-8">
+      <div className="mx-auto flex h-[60px] max-w-6xl items-center justify-between gap-4 px-5 sm:px-8">
         <Link
           href="/"
-          className="text-[15px] font-semibold tracking-[-0.02em] text-foreground transition-opacity hover:opacity-70"
+          className="shrink-0 text-[15px] font-semibold tracking-[-0.02em] text-foreground transition-opacity hover:opacity-70"
         >
           SkillHub
         </Link>
 
-        <nav className="hidden items-center gap-1 md:flex">
+        <nav className="hidden flex-1 items-center justify-center gap-0.5 md:flex">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="rounded-[10px] px-3.5 py-2 text-[13px] text-muted transition-colors duration-200 hover:text-foreground"
+              className="rounded-[10px] px-3.5 py-2 text-[13px] text-muted transition-colors duration-200 hover:bg-surface hover:text-foreground"
             >
               {link.label}
             </Link>
           ))}
         </nav>
 
-        <div className="flex items-center gap-2.5">
-          <Link
-            href="/signin"
-            className="hidden text-[13px] text-muted transition-colors duration-200 hover:text-foreground sm:block"
-          >
-            Sign in
-          </Link>
-          <ThemeToggle />
-          <Link href="/signup" className="hidden sm:block">
-            <Button size="sm">Get started</Button>
-          </Link>
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+          {isChecking ? (
+            <div className={cn(actionClusterClass, "px-2 py-1")}>
+              <div className="h-8 w-16 animate-pulse rounded-[10px] bg-surface" />
+              <div className="h-8 w-8 animate-pulse rounded-[10px] bg-surface" />
+            </div>
+          ) : isAuthenticated && user ? (
+            <>
+              <Link href="/dashboard" className="hidden lg:block">
+                <Button variant="secondary" size="sm">
+                  Dashboard
+                </Button>
+              </Link>
+
+              <div className={cn(actionClusterClass, "hidden sm:flex")}>
+                <ThemeToggle variant="inline" />
+                {clusterDivider}
+                <UserProfileMenu variant="header" compact />
+              </div>
+
+              <div className="sm:hidden">
+                <UserProfileMenu variant="header" compact />
+              </div>
+            </>
+          ) : (
+            <>
+              <Link href="/signin" className="hidden lg:block">
+                <Button variant="ghost" size="sm">
+                  Sign in
+                </Button>
+              </Link>
+
+              <div className={cn(actionClusterClass, "hidden sm:flex")}>
+                <ThemeToggle variant="inline" />
+                {clusterDivider}
+                <Link href="/signup">
+                  <Button size="sm" className="rounded-[10px] px-4">
+                    Get started
+                  </Button>
+                </Link>
+              </div>
+            </>
+          )}
 
           <button
             type="button"
-            onClick={() => setMenuOpen((o) => !o)}
-            className="flex h-8 w-8 items-center justify-center rounded-[10px] border border-border md:hidden"
+            onClick={() => setMenuOpen((open) => !open)}
+            className="flex h-8 w-8 items-center justify-center rounded-[10px] border border-border bg-card text-muted transition-colors duration-200 hover:bg-surface hover:text-foreground md:hidden"
             aria-label="Toggle menu"
             aria-expanded={menuOpen}
           >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              {menuOpen ? <path d="M18 6 6 18M6 6l12 12" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            >
+              {menuOpen ? (
+                <path d="M18 6 6 18M6 6l12 12" />
+              ) : (
+                <path d="M4 7h16M4 12h16M4 17h16" />
+              )}
             </svg>
           </button>
         </div>
@@ -67,30 +123,84 @@ const Header: FC = () => {
       <div
         className={cn(
           "overflow-hidden border-t border-border transition-all duration-300 md:hidden",
-          menuOpen ? "max-h-80 opacity-100" : "max-h-0 opacity-0 border-t-0"
+          menuOpen ? "max-h-128 opacity-100" : "max-h-0 opacity-0 border-t-0",
         )}
       >
-        <nav className="flex flex-col gap-0.5 px-5 py-4">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={() => setMenuOpen(false)}
-              className="rounded-[10px] px-3 py-2.5 text-[13px] text-muted transition-colors hover:text-foreground"
-            >
-              {link.label}
-            </Link>
-          ))}
-          <Link href="/signup" onClick={() => setMenuOpen(false)} className="mt-3">
-            <Button className="w-full" size="sm">Get started</Button>
-          </Link>
-          <Link
-            href="/signin"
-            onClick={() => setMenuOpen(false)}
-            className="mt-2 block rounded-[10px] px-3 py-2.5 text-center text-[13px] text-muted transition-colors hover:text-foreground"
-          >
-            Sign in
-          </Link>
+        <nav className="px-5 py-4">
+          <p className="label mb-3">Explore</p>
+          <div className="flex flex-col gap-0.5">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={closeMenu}
+                className="rounded-[10px] px-3 py-2.5 text-[13px] text-muted transition-colors hover:bg-surface hover:text-foreground"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+
+          <div className="mt-5 border-t border-border pt-5">
+            <p className="label mb-3">Account</p>
+
+            {isChecking ? (
+              <div className="space-y-2">
+                <div className="h-10 animate-pulse rounded-[12px] bg-surface" />
+                <div className="h-10 animate-pulse rounded-[12px] bg-surface" />
+              </div>
+            ) : isAuthenticated && user ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 rounded-[12px] border border-border bg-card px-3 py-3 shadow-soft">
+                  <UserAvatar
+                    name={user.name}
+                    src={user.avatar?.url}
+                    size="md"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-[13px] font-medium">{user.name}</p>
+                    <p className="truncate text-[12px] text-muted">{user.email}</p>
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">
+                      {formatRole(user.role)}
+                    </p>
+                  </div>
+                </div>
+
+                <Link href="/dashboard" onClick={closeMenu}>
+                  <Button className="w-full" size="md">
+                    Go to dashboard
+                  </Button>
+                </Link>
+
+                <Link href="/dashboard/settings" onClick={closeMenu}>
+                  <Button variant="secondary" className="w-full" size="md">
+                    Settings
+                  </Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2.5">
+                <Link href="/signup" onClick={closeMenu}>
+                  <Button className="w-full" size="md">
+                    Start learning free
+                  </Button>
+                </Link>
+                <Link href="/signin" onClick={closeMenu}>
+                  <Button variant="secondary" className="w-full" size="md">
+                    Sign in
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </div>
+
+          <div className="mt-5 flex items-center justify-between rounded-[12px] border border-border bg-surface px-3 py-2.5">
+            <div>
+              <p className="text-[13px] font-medium">Appearance</p>
+              <p className="text-[11px] text-muted">Light or dark mode</p>
+            </div>
+            <ThemeToggle variant="default" />
+          </div>
         </nav>
       </div>
     </header>

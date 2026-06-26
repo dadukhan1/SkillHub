@@ -1,5 +1,5 @@
 import Link from "next/link";
-import DashboardHeader from "@/app/components/dashboard/DashboardHeader";
+import DashboardWelcome from "@/app/components/dashboard/DashboardWelcome";
 import AnalyticsWidget from "@/app/components/dashboard/AnalyticsWidget";
 import CourseTrackingCard from "@/app/components/dashboard/CourseTrackingCard";
 import Button from "@/app/components/ui/Button";
@@ -9,10 +9,7 @@ export default function DashboardPage() {
   return (
     <>
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <DashboardHeader
-          title="Good morning, Jane"
-          description="You're on a 14-day streak. Keep the momentum going."
-        />
+        <DashboardWelcome />
         <Link href="#courses">
           <Button variant="secondary" size="sm">
             Explore courses

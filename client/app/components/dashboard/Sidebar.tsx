@@ -4,7 +4,9 @@ import { FC } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/redux/hooks";
 import ThemeToggle from "../ThemeToggle";
+import UserProfileMenu from "../layout/UserProfileMenu";
 
 const navItems = [
   {
@@ -62,6 +64,7 @@ const navItems = [
 
 const Sidebar: FC = () => {
   const pathname = usePathname();
+  const { user } = useAuth();
 
   return (
     <aside className="flex w-56 shrink-0 flex-col border-r border-border bg-card">
@@ -96,13 +99,9 @@ const Sidebar: FC = () => {
       </nav>
 
       <div className="border-t border-border p-3">
-        <div className="flex items-center gap-2.5 rounded-[10px] px-2 py-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-full border border-border text-[10px] font-medium text-muted">
-            JD
-          </div>
-          <div className="flex-1 truncate">
-            <p className="truncate text-[13px] font-medium">Jane Doe</p>
-            <p className="truncate text-[11px] text-muted">Pro plan</p>
+        <div className="flex items-center gap-2">
+          <div className="min-w-0 flex-1">
+            {user && <UserProfileMenu variant="sidebar" />}
           </div>
           <ThemeToggle />
         </div>
