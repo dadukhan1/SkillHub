@@ -4,10 +4,12 @@ import { apiSlice } from "./apiSlice";
 
 interface AuthState {
   user: User | null;
+  sessionReady: boolean;
 }
 
 const initialState: AuthState = {
   user: null,
+  sessionReady: false,
 };
 
 const authSlice = createSlice({
@@ -17,6 +19,9 @@ const authSlice = createSlice({
     setUser: (state, action: PayloadAction<User | null>) => {
       state.user = action.payload;
     },
+    setSessionReady: (state, action: PayloadAction<boolean>) => {
+      state.sessionReady = action.payload;
+    },
     logout: (state) => {
       state.user = null;
     },
@@ -25,9 +30,11 @@ const authSlice = createSlice({
     builder
       .addMatcher(apiSlice.endpoints.login.matchFulfilled, (state, action) => {
         state.user = action.payload.user;
+        state.sessionReady = true;
       })
       .addMatcher(apiSlice.endpoints.socialAuth.matchFulfilled, (state, action) => {
         state.user = action.payload.user;
+        state.sessionReady = true;
       })
       .addMatcher(apiSlice.endpoints.getMe.matchFulfilled, (state, action) => {
         state.user = action.payload.user;
@@ -58,5 +65,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { setUser, logout } = authSlice.actions;
+export const { setUser, setSessionReady, logout } = authSlice.actions;
 export default authSlice.reducer;

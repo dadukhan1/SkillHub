@@ -9,6 +9,9 @@ import { logout } from "../features/authSlice";
 const baseUrl =
   process.env.NEXT_PUBLIC_SERVER_URL ?? "http://localhost:8000/api/v1";
 
+/** Access tokens expire in 5m on the server — refresh proactively before that. */
+export const REFRESH_INTERVAL_MS = 4 * 60 * 1000;
+
 const rawBaseQuery = fetchBaseQuery({
   baseUrl,
   credentials: "include",
@@ -25,9 +28,12 @@ const PUBLIC_ENDPOINTS = [
 const getRequestUrl = (args: string | FetchArgs) =>
   typeof args === "string" ? args : args.url;
 
+const isPublicEndpoint = (url: string) =>
+  PUBLIC_ENDPOINTS.some((endpoint) => url.includes(endpoint));
+
 let refreshPromise: Promise<boolean> | null = null;
 
-const refreshAccessToken = async (
+export const refreshAccessToken = async (
   api: Parameters<BaseQueryFn>[1],
   extraOptions: Parameters<BaseQueryFn>[2],
 ): Promise<boolean> => {
@@ -54,10 +60,7 @@ export const baseQueryWithReauth: BaseQueryFn<
   const url = getRequestUrl(args);
   let result = await rawBaseQuery(args, api, extraOptions);
 
-  if (
-    result.error?.status === 401 &&
-    !PUBLIC_ENDPOINTS.some((endpoint) => url.includes(endpoint))
-  ) {
+  if (result.error?.status === 401 && !isPublicEndpoint(url)) {
     const refreshed = await refreshAccessToken(api, extraOptions);
 
     if (refreshed) {

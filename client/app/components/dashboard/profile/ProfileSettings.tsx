@@ -246,12 +246,12 @@ const VerificationStatus: FC<{ isVerified: boolean }> = ({ isVerified }) => (
 );
 
 const ProfileSettings: FC = () => {
-  const { user } = useAuth();
-  const { refetch } = useGetMeQuery();
+  const { user, sessionReady } = useAuth();
+  const { refetch } = useGetMeQuery(undefined, { skip: !sessionReady });
 
   useEffect(() => {
-    refetch();
-  }, [refetch]);
+    if (sessionReady) refetch();
+  }, [sessionReady, refetch]);
 
   if (!user) return null;
 

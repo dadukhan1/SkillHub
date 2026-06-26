@@ -7,14 +7,19 @@ export const useAppSelector = useSelector.withTypes<RootState>();
 
 export const useAuth = () => {
   const user = useAppSelector((state) => state.auth.user);
-  const { isLoading, isFetching, isUninitialized } = useGetMeQuery();
+  const sessionReady = useAppSelector((state) => state.auth.sessionReady);
+  const { isLoading, isFetching, isUninitialized } = useGetMeQuery(undefined, {
+    skip: !sessionReady,
+  });
 
-  const isChecking = isUninitialized || isLoading || (isFetching && !user);
+  const isChecking =
+    !sessionReady || isUninitialized || isLoading || (isFetching && !user);
 
   return {
     user,
     isAuthenticated: !!user,
     isChecking,
+    sessionReady,
   };
 };
 
