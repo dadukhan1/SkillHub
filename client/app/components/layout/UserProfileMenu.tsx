@@ -8,6 +8,7 @@ import {
 } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 import toast from "react-hot-toast";
 import { useLogoutMutation } from "@/redux/features/apiSlice";
 import { useAuth } from "@/redux/hooks";
@@ -59,6 +60,7 @@ const UserProfileMenu: FC<UserProfileMenuProps> = ({
   const handleLogout = async () => {
     try {
       await logout().unwrap();
+      await signOut({ redirect: false });
       setOpen(false);
       toast.success("Signed out successfully.");
       router.push("/signin");

@@ -26,6 +26,9 @@ const authSlice = createSlice({
       .addMatcher(apiSlice.endpoints.login.matchFulfilled, (state, action) => {
         state.user = action.payload.user;
       })
+      .addMatcher(apiSlice.endpoints.socialAuth.matchFulfilled, (state, action) => {
+        state.user = action.payload.user;
+      })
       .addMatcher(apiSlice.endpoints.getMe.matchFulfilled, (state, action) => {
         state.user = action.payload.user;
       })

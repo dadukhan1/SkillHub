@@ -38,6 +38,17 @@ export interface LoginResponse extends ApiResponse {
   accessToken: string;
 }
 
+export interface SocialAuthRequest {
+  name: string;
+  email: string;
+  avatar?: string;
+}
+
+export interface SocialAuthResponse extends ApiResponse {
+  user: User;
+  accessToken: string;
+}
+
 export interface ActivateRequest {
   activationToken: string;
   activationCode: string;

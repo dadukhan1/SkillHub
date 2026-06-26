@@ -1,4 +1,7 @@
+"use client";
+
 import { FC } from "react";
+import { signIn } from "next-auth/react";
 import Button from "../ui/Button";
 
 const GoogleIcon = () => (
@@ -34,17 +37,33 @@ const GitHubIcon = () => (
   </svg>
 );
 
-const SocialAuthButtons: FC = () => (
-  <div className="grid grid-cols-2 gap-2.5">
-    <Button type="button" variant="secondary" size="sm">
-      <GoogleIcon />
-      Google
-    </Button>
-    <Button type="button" variant="secondary" size="sm">
-      <GitHubIcon />
-      GitHub
-    </Button>
-  </div>
-);
+const SocialAuthButtons: FC = () => {
+  const handleSocialSignIn = (provider: "google" | "github") => {
+    signIn(provider, { callbackUrl: "/auth/social-callback" });
+  };
+
+  return (
+    <div className="grid grid-cols-2 gap-2.5">
+      <Button
+        type="button"
+        variant="secondary"
+        size="sm"
+        onClick={() => handleSocialSignIn("google")}
+      >
+        <GoogleIcon />
+        Google
+      </Button>
+      <Button
+        type="button"
+        variant="secondary"
+        size="sm"
+        onClick={() => handleSocialSignIn("github")}
+      >
+        <GitHubIcon />
+        GitHub
+      </Button>
+    </div>
+  );
+};
 
 export default SocialAuthButtons;

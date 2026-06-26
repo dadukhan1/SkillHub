@@ -8,6 +8,8 @@ import type {
   RefreshTokenResponse,
   RegisterRequest,
   RegisterResponse,
+  SocialAuthRequest,
+  SocialAuthResponse,
 } from "../types/auth";
 import { baseQueryWithReauth } from "../utils/baseQueryWithReauth";
 
@@ -26,6 +28,14 @@ export const apiSlice = createApi({
     login: builder.mutation<LoginResponse, LoginRequest>({
       query: (body) => ({
         url: "/login",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["User"],
+    }),
+    socialAuth: builder.mutation<SocialAuthResponse, SocialAuthRequest>({
+      query: (body) => ({
+        url: "/social-auth",
         method: "POST",
         body,
       }),
@@ -61,6 +71,7 @@ export const apiSlice = createApi({
 export const {
   useRegisterMutation,
   useLoginMutation,
+  useSocialAuthMutation,
   useActivateMutation,
   useRefreshTokenMutation,
   useGetMeQuery,

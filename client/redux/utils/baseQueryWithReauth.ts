@@ -14,7 +14,13 @@ const rawBaseQuery = fetchBaseQuery({
   credentials: "include",
 });
 
-const PUBLIC_ENDPOINTS = ["/login", "/register", "/activation", "/refresh-token"];
+const PUBLIC_ENDPOINTS = [
+  "/login",
+  "/register",
+  "/activation",
+  "/refresh-token",
+  "/social-auth",
+];
 
 const getRequestUrl = (args: string | FetchArgs) =>
   typeof args === "string" ? args : args.url;

@@ -1,8 +1,8 @@
 "use client";
 
-import { FC, FormEvent, useState } from "react";
+import { FC, FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
 import { useLoginMutation } from "@/redux/features/apiSlice";
 import { getErrorMessage } from "@/redux/utils/getErrorMessage";
@@ -12,9 +12,27 @@ import SocialAuthButtons from "./SocialAuthButtons";
 
 const SignInForm: FC = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [login, { isLoading }] = useLoginMutation();
+
+  useEffect(() => {
+    const error = searchParams.get("error");
+    if (!error) return;
+
+    const messages: Record<string, string> = {
+      OAuthSignin: "Could not start social sign-in. Check your OAuth app settings.",
+      OAuthCallback: "Social sign-in callback failed. Verify redirect URIs in Google/GitHub.",
+      OAuthAccountNotLinked: "This email is linked to another sign-in method.",
+      Configuration: "Auth is misconfigured. Check server environment variables.",
+      AccessDenied: "Access was denied. You may have cancelled sign-in.",
+      Default: "Social sign-in failed. Please try again.",
+    };
+
+    toast.error(messages[error] ?? messages.Default);
+    router.replace("/signin");
+  }, [searchParams, router]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();

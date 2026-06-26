@@ -220,15 +220,28 @@ interface ISocialAuth {
 // social auth
 export const socialAuth = catchAsyncErrors(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { name, email, avatar } = req.body;
+    const { name, email, avatar } = req.body as ISocialAuth;
+
+    if (!name || !email) {
+      return next(new ErrorHandler("Please provide name and email", 400));
+    }
+
+    const avatarData =
+      typeof avatar === "string" && avatar.length > 0
+        ? { url: avatar }
+        : undefined;
 
     let user = await userModel.findOne({ email });
     if (!user) {
-      const newUser = await userModel.create({ name, email, avatar });
-      sendToken(newUser, 200, res);
-    } else {
-      sendToken(user, 200, res);
+      user = await userModel.create({
+        name,
+        email,
+        avatar: avatarData,
+        isVerified: true,
+      });
     }
+
+    sendToken(user, 200, res);
   },
 );
 
