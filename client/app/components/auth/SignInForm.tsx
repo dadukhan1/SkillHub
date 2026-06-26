@@ -3,6 +3,9 @@
 import { FC, FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import { useLoginMutation } from "@/redux/features/apiSlice";
+import { getErrorMessage } from "@/redux/utils/getErrorMessage";
 import Button from "../ui/Button";
 import Input from "../ui/Input";
 import SocialAuthButtons from "./SocialAuthButtons";
@@ -11,13 +14,18 @@ const SignInForm: FC = () => {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [login, { isLoading }] = useLoginMutation();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    router.push("/dashboard");
+
+    try {
+      await login({ email, password }).unwrap();
+      toast.success("Welcome back!");
+      router.push("/dashboard");
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Invalid email or password."));
+    }
   };
 
   return (

@@ -3,10 +3,19 @@
 import { FC, FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import toast from "react-hot-toast";
+import { useActivateMutation, useRegisterMutation } from "@/redux/features/apiSlice";
+import { getErrorMessage } from "@/redux/utils/getErrorMessage";
 import Button from "../ui/Button";
 import OtpInput from "./OtpInput";
+import {
+  clearPendingRegistration,
+  getPendingRegistration,
+  storePendingRegistration,
+} from "./SignUpForm";
 
 const RESEND_SECONDS = 60;
+const OTP_LENGTH = 4;
 
 const maskEmail = (email: string) => {
   const [local, domain] = email.split("@");
@@ -22,9 +31,9 @@ const VerifyOtpForm: FC = () => {
 
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(RESEND_SECONDS);
-  const [isResending, setIsResending] = useState(false);
+  const [activate, { isLoading }] = useActivateMutation();
+  const [register, { isLoading: isResending }] = useRegisterMutation();
 
   useEffect(() => {
     if (resendTimer <= 0) return;
@@ -38,32 +47,58 @@ const VerifyOtpForm: FC = () => {
     e.preventDefault();
     setError("");
 
-    if (otp.length !== 6) {
-      setError("Please enter the full 6-digit code.");
+    if (otp.length !== OTP_LENGTH) {
+      setError(`Please enter the full ${OTP_LENGTH}-digit code.`);
       return;
     }
 
-    setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 800));
-
-    // Mock verification — replace with API call
-    if (otp === "000000") {
-      setError("Invalid code. Please try again.");
-      setIsLoading(false);
+    const pending = getPendingRegistration();
+    if (!pending?.activationToken) {
+      setError("Session expired. Please sign up again.");
       return;
     }
 
-    router.push("/dashboard");
+    try {
+      await activate({
+        activationToken: pending.activationToken,
+        activationCode: otp,
+      }).unwrap();
+      clearPendingRegistration();
+      toast.success("Account activated! You can sign in now.");
+      router.push("/signin");
+    } catch (err) {
+      const message = getErrorMessage(err, "Invalid code. Please try again.");
+      setError(message);
+      toast.error(message);
+    }
   };
 
   const handleResend = async () => {
     if (resendTimer > 0 || isResending) return;
-    setIsResending(true);
-    setError("");
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    setResendTimer(RESEND_SECONDS);
-    setOtp("");
-    setIsResending(false);
+
+    const pending = getPendingRegistration();
+    if (!pending) {
+      toast.error("Session expired. Please sign up again.");
+      router.push("/signup");
+      return;
+    }
+
+    try {
+      const result = await register({
+        name: pending.name,
+        email: pending.email,
+        password: pending.password,
+      }).unwrap();
+      storePendingRegistration({
+        ...pending,
+        activationToken: result.activationToken,
+      });
+      setResendTimer(RESEND_SECONDS);
+      setOtp("");
+      toast.success("A new code has been sent to your email.");
+    } catch (err) {
+      toast.error(getErrorMessage(err, "Unable to resend code."));
+    }
   };
 
   if (!email) {
@@ -89,7 +124,7 @@ const VerifyOtpForm: FC = () => {
           Verify your email
         </h1>
         <p className="mt-1.5 text-[14px] leading-relaxed text-muted">
-          We sent a 6-digit code to{" "}
+          We sent a {OTP_LENGTH}-digit code to{" "}
           <span className="font-medium text-foreground">{maskEmail(email)}</span>
         </p>
       </div>
@@ -97,6 +132,7 @@ const VerifyOtpForm: FC = () => {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
           <OtpInput
+            length={OTP_LENGTH}
             value={otp}
             onChange={(value) => {
               setOtp(value);
@@ -114,7 +150,7 @@ const VerifyOtpForm: FC = () => {
           type="submit"
           size="md"
           className="w-full"
-          disabled={isLoading || otp.length !== 6}
+          disabled={isLoading || otp.length !== OTP_LENGTH}
         >
           {isLoading ? "Verifying…" : "Verify & continue"}
         </Button>

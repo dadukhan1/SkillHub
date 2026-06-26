@@ -8,11 +8,12 @@ import {
 } from "react";
 import { cn } from "@/lib/utils";
 
-const OTP_LENGTH = 6;
+const OTP_LENGTH_DEFAULT = 4;
 
 interface OtpInputProps {
   value: string;
   onChange: (value: string) => void;
+  length?: number;
   disabled?: boolean;
   error?: boolean;
 }
@@ -20,21 +21,22 @@ interface OtpInputProps {
 const OtpInput: FC<OtpInputProps> = ({
   value,
   onChange,
+  length = OTP_LENGTH_DEFAULT,
   disabled = false,
   error = false,
 }) => {
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
-  const digits = value.padEnd(OTP_LENGTH, " ").split("").slice(0, OTP_LENGTH);
+  const digits = value.padEnd(length, " ").split("").slice(0, length);
 
   const handleChange = (index: number, char: string) => {
     if (!/^\d?$/.test(char)) return;
 
     const chars = value.split("");
-    while (chars.length < OTP_LENGTH) chars.push("");
+    while (chars.length < length) chars.push("");
     chars[index] = char;
-    onChange(chars.join("").slice(0, OTP_LENGTH));
+    onChange(chars.join("").slice(0, length));
 
-    if (char && index < OTP_LENGTH - 1) {
+    if (char && index < length - 1) {
       inputsRef.current[index + 1]?.focus();
     }
   };
@@ -46,17 +48,17 @@ const OtpInput: FC<OtpInputProps> = ({
     if (e.key === "ArrowLeft" && index > 0) {
       inputsRef.current[index - 1]?.focus();
     }
-    if (e.key === "ArrowRight" && index < OTP_LENGTH - 1) {
+    if (e.key === "ArrowRight" && index < length - 1) {
       inputsRef.current[index + 1]?.focus();
     }
   };
 
   const handlePaste = (e: ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
-    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, OTP_LENGTH);
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, length);
     if (!pasted) return;
     onChange(pasted);
-    const focusIndex = Math.min(pasted.length, OTP_LENGTH - 1);
+    const focusIndex = Math.min(pasted.length, length - 1);
     inputsRef.current[focusIndex]?.focus();
   };
 
@@ -74,7 +76,7 @@ const OtpInput: FC<OtpInputProps> = ({
           maxLength={1}
           value={digit.trim()}
           disabled={disabled}
-          aria-label={`Digit ${index + 1} of ${OTP_LENGTH}`}
+          aria-label={`Digit ${index + 1} of ${length}`}
           onChange={(e) => handleChange(index, e.target.value)}
           onKeyDown={(e) => handleKeyDown(index, e)}
           onPaste={handlePaste}

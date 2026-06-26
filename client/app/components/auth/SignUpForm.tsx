@@ -3,22 +3,66 @@
 import { FC, FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import { useRegisterMutation } from "@/redux/features/apiSlice";
+import { getErrorMessage } from "@/redux/utils/getErrorMessage";
 import Button from "../ui/Button";
 import Input from "../ui/Input";
 import SocialAuthButtons from "./SocialAuthButtons";
+
+const PENDING_REGISTRATION_KEY = "skillhub_pending_registration";
+
+export const storePendingRegistration = (data: {
+  name: string;
+  email: string;
+  password: string;
+  activationToken: string;
+}) => {
+  sessionStorage.setItem(PENDING_REGISTRATION_KEY, JSON.stringify(data));
+};
+
+export const getPendingRegistration = () => {
+  const raw = sessionStorage.getItem(PENDING_REGISTRATION_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as {
+      name: string;
+      email: string;
+      password: string;
+      activationToken: string;
+    };
+  } catch {
+    return null;
+  }
+};
+
+export const clearPendingRegistration = () => {
+  sessionStorage.removeItem(PENDING_REGISTRATION_KEY);
+};
 
 const SignUpForm: FC = () => {
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [register, { isLoading }] = useRegisterMutation();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    router.push(`/verify-otp?email=${encodeURIComponent(email)}`);
+
+    try {
+      const result = await register({ name, email, password }).unwrap();
+      storePendingRegistration({
+        name,
+        email,
+        password,
+        activationToken: result.activationToken,
+      });
+      toast.success("Check your email for the verification code.");
+      router.push(`/verify-otp?email=${encodeURIComponent(email)}`);
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Unable to create account."));
+    }
   };
 
   return (
