@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/redux/hooks";
@@ -28,9 +28,26 @@ const Header: FC = () => {
 
   const closeMenu = () => setMenuOpen(false);
 
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMenuOpen(false);
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [menuOpen]);
+
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-md">
-      <div className="mx-auto flex h-[60px] max-w-6xl items-center justify-between gap-4 px-5 sm:px-8">
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4 sm:h-[60px] sm:gap-4 sm:px-8">
         <Link
           href="/"
           className="shrink-0 text-[15px] font-semibold tracking-[-0.02em] text-foreground transition-opacity hover:opacity-70"
@@ -69,10 +86,6 @@ const Header: FC = () => {
                 {clusterDivider}
                 <UserProfileMenu variant="header" compact />
               </div>
-
-              <div className="sm:hidden">
-                <UserProfileMenu variant="header" compact />
-              </div>
             </>
           ) : (
             <>
@@ -97,8 +110,8 @@ const Header: FC = () => {
           <button
             type="button"
             onClick={() => setMenuOpen((open) => !open)}
-            className="flex h-8 w-8 items-center justify-center rounded-[10px] border border-border bg-card text-muted transition-colors duration-200 hover:bg-surface hover:text-foreground md:hidden"
-            aria-label="Toggle menu"
+            className="flex h-9 w-9 items-center justify-center rounded-[10px] border border-border bg-card text-muted transition-colors duration-200 hover:bg-surface hover:text-foreground md:hidden"
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
             aria-expanded={menuOpen}
           >
             <svg
@@ -122,86 +135,88 @@ const Header: FC = () => {
 
       <div
         className={cn(
-          "overflow-hidden border-t border-border transition-all duration-300 md:hidden",
-          menuOpen ? "max-h-128 opacity-100" : "max-h-0 opacity-0 border-t-0",
+          "grid transition-[grid-template-rows] duration-300 ease-out md:hidden",
+          menuOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
         )}
       >
-        <nav className="px-5 py-4">
-          <p className="label mb-3">Explore</p>
-          <div className="flex flex-col gap-0.5">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={closeMenu}
-                className="rounded-[10px] px-3 py-2.5 text-[13px] text-muted transition-colors hover:bg-surface hover:text-foreground"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </div>
-
-          <div className="mt-5 border-t border-border pt-5">
-            <p className="label mb-3">Account</p>
-
-            {isChecking ? (
-              <div className="space-y-2">
-                <div className="h-10 animate-pulse rounded-[12px] bg-surface" />
-                <div className="h-10 animate-pulse rounded-[12px] bg-surface" />
-              </div>
-            ) : isAuthenticated && user ? (
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 rounded-[12px] border border-border bg-card px-3 py-3 shadow-soft">
-                  <UserAvatar
-                    name={user.name}
-                    src={user.avatar?.url}
-                    size="md"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-[13px] font-medium">{user.name}</p>
-                    <p className="truncate text-[12px] text-muted">{user.email}</p>
-                    <p className="mt-0.5 text-[11px] text-muted-foreground">
-                      {formatRole(user.role)}
-                    </p>
-                  </div>
-                </div>
-
-                <Link href="/dashboard" onClick={closeMenu}>
-                  <Button className="w-full" size="md">
-                    Go to dashboard
-                  </Button>
+        <div className="overflow-hidden">
+          <nav className="max-h-[calc(100dvh-3.5rem)] overflow-y-auto overscroll-contain border-t border-border px-4 py-4 sm:max-h-[calc(100dvh-3.75rem)] sm:px-8">
+            <p className="label mb-3">Explore</p>
+            <div className="flex flex-col gap-0.5">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={closeMenu}
+                  className="rounded-[10px] px-3 py-2.5 text-[13px] text-muted transition-colors hover:bg-surface hover:text-foreground"
+                >
+                  {link.label}
                 </Link>
-
-                <Link href="/dashboard/settings" onClick={closeMenu}>
-                  <Button variant="secondary" className="w-full" size="md">
-                    Settings
-                  </Button>
-                </Link>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-2.5">
-                <Link href="/signup" onClick={closeMenu}>
-                  <Button className="w-full" size="md">
-                    Start learning free
-                  </Button>
-                </Link>
-                <Link href="/signin" onClick={closeMenu}>
-                  <Button variant="secondary" className="w-full" size="md">
-                    Sign in
-                  </Button>
-                </Link>
-              </div>
-            )}
-          </div>
-
-          <div className="mt-5 flex items-center justify-between rounded-[12px] border border-border bg-surface px-3 py-2.5">
-            <div>
-              <p className="text-[13px] font-medium">Appearance</p>
-              <p className="text-[11px] text-muted">Light or dark mode</p>
+              ))}
             </div>
-            <ThemeToggle variant="default" />
-          </div>
-        </nav>
+
+            <div className="mt-5 border-t border-border pt-5">
+              <p className="label mb-3">Account</p>
+
+              {isChecking ? (
+                <div className="space-y-2">
+                  <div className="h-10 animate-pulse rounded-[12px] bg-surface" />
+                  <div className="h-10 animate-pulse rounded-[12px] bg-surface" />
+                </div>
+              ) : isAuthenticated && user ? (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 rounded-[12px] border border-border bg-card px-3 py-3 shadow-soft">
+                    <UserAvatar
+                      name={user.name}
+                      src={user.avatar?.url}
+                      size="md"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[13px] font-medium">{user.name}</p>
+                      <p className="truncate text-[12px] text-muted">{user.email}</p>
+                      <p className="mt-0.5 text-[11px] text-muted-foreground">
+                        {formatRole(user.role)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <Link href="/dashboard" onClick={closeMenu}>
+                    <Button className="w-full" size="md">
+                      Go to dashboard
+                    </Button>
+                  </Link>
+
+                  <Link href="/dashboard/settings" onClick={closeMenu}>
+                    <Button variant="secondary" className="w-full" size="md">
+                      Settings
+                    </Button>
+                  </Link>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2.5">
+                  <Link href="/signup" onClick={closeMenu}>
+                    <Button className="w-full" size="md">
+                      Start learning free
+                    </Button>
+                  </Link>
+                  <Link href="/signin" onClick={closeMenu}>
+                    <Button variant="secondary" className="w-full" size="md">
+                      Sign in
+                    </Button>
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-5 flex items-center justify-between rounded-[12px] border border-border bg-surface px-3 py-2.5">
+              <div>
+                <p className="text-[13px] font-medium">Appearance</p>
+                <p className="text-[11px] text-muted">Light or dark mode</p>
+              </div>
+              <ThemeToggle variant="default" />
+            </div>
+          </nav>
+        </div>
       </div>
     </header>
   );

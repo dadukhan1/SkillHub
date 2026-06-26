@@ -170,7 +170,10 @@ const UserProfileMenu: FC<UserProfileMenuProps> = ({
       {open && (
         <div
           role="menu"
-          className="absolute right-0 z-50 mt-2 w-56 overflow-hidden rounded-xl border border-border bg-card p-1 shadow-soft"
+          className={cn(
+            "absolute right-0 z-50 mt-2 overflow-hidden rounded-xl border border-border bg-card p-1 shadow-soft",
+            compact ? "w-[min(14rem,calc(100vw-2rem))]" : "w-56",
+          )}
         >
           <div className="border-b border-border px-3 py-2.5">
             <p className="truncate text-[13px] font-medium">{user.name}</p>

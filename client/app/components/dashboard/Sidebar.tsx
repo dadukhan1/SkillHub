@@ -1,6 +1,6 @@
 "use client";
 
-import { FC } from "react";
+import { FC, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -62,33 +62,65 @@ const navItems = [
   },
 ];
 
-const Sidebar: FC = () => {
+interface SidebarProps {
+  mobileOpen?: boolean;
+  onNavigate?: () => void;
+}
+
+const Sidebar: FC<SidebarProps> = ({ mobileOpen = false, onNavigate }) => {
   const pathname = usePathname();
   const { user } = useAuth();
 
   return (
-    <aside className="flex w-56 shrink-0 flex-col border-r border-border bg-card">
-      <div className="flex h-[60px] items-center border-b border-border px-5">
+    <aside
+      className={cn(
+        "flex w-64 shrink-0 flex-col border-r border-border bg-card lg:static lg:w-56 lg:translate-x-0",
+        "fixed inset-y-0 left-0 z-50 transition-transform duration-300 ease-out lg:relative",
+        mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
+      )}
+    >
+      <div className="flex h-14 items-center justify-between border-b border-border px-5 lg:h-[60px]">
         <Link
           href="/"
+          onClick={onNavigate}
           className="text-[15px] font-semibold tracking-[-0.02em] transition-opacity hover:opacity-70"
         >
           SkillHub
         </Link>
+
+        <button
+          type="button"
+          onClick={onNavigate}
+          className="flex h-8 w-8 items-center justify-center rounded-[10px] text-muted transition-colors hover:bg-surface hover:text-foreground lg:hidden"
+          aria-label="Close navigation menu"
+        >
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+          >
+            <path d="M18 6 6 18M6 6l12 12" />
+          </svg>
+        </button>
       </div>
 
-      <nav className="flex-1 space-y-0.5 p-3">
+      <nav className="flex-1 space-y-0.5 overflow-y-auto overscroll-contain p-3">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           return (
             <Link
               key={item.href}
               href={item.href}
+              onClick={onNavigate}
               className={cn(
-                "flex items-center gap-2.5 rounded-[10px] px-3 py-2 text-[13px] transition-colors duration-200",
+                "flex items-center gap-2.5 rounded-[10px] px-3 py-2.5 text-[13px] transition-colors duration-200",
                 isActive
                   ? "bg-surface font-medium text-foreground"
-                  : "text-muted hover:bg-surface hover:text-foreground"
+                  : "text-muted hover:bg-surface hover:text-foreground",
               )}
             >
               {item.icon}
