@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import { useSocialAuthMutation } from "@/redux/features/apiSlice";
 import { getErrorMessage } from "@/redux/utils/getErrorMessage";
+import { getAuthenticatedHomePath } from "@/lib/user";
 import AuthLoadingScreen from "@/app/components/auth/AuthLoadingScreen";
 
 const SocialCallbackPage: FC = () => {
@@ -36,9 +37,9 @@ const SocialCallbackPage: FC = () => {
       avatar: session.user?.image ?? undefined,
     })
       .unwrap()
-      .then(() => {
+      .then((result) => {
         toast.success("Welcome!");
-        router.replace("/dashboard");
+        router.replace(getAuthenticatedHomePath(result.user));
       })
       .catch((error) => {
         toast.error(getErrorMessage(error, "Social sign-in failed."));

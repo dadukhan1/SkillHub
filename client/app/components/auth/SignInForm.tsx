@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
 import { useLoginMutation } from "@/redux/features/apiSlice";
 import { getErrorMessage } from "@/redux/utils/getErrorMessage";
+import { getAuthenticatedHomePath } from "@/lib/user";
 import Button from "../ui/Button";
 import Input from "../ui/Input";
 import SocialAuthButtons from "./SocialAuthButtons";
@@ -38,9 +39,9 @@ const SignInForm: FC = () => {
     e.preventDefault();
 
     try {
-      await login({ email, password }).unwrap();
+      const result = await login({ email, password }).unwrap();
       toast.success("Welcome back!");
-      router.push("/dashboard");
+      router.push(getAuthenticatedHomePath(result.user));
     } catch (error) {
       toast.error(getErrorMessage(error, "Invalid email or password."));
     }

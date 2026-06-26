@@ -8,6 +8,7 @@ export interface User {
     url: string;
   };
   isVerified: boolean;
+  hasPassword?: boolean;
   courses: Array<{ courseId: string }>;
   createdAt?: string;
   updatedAt?: string;
@@ -62,4 +63,27 @@ export interface RefreshTokenResponse {
   success?: boolean;
   sucess?: boolean;
   accessToken: string;
+}
+
+export interface UpdateUserInfoRequest {
+  name?: string;
+  email?: string;
+}
+
+export interface UpdatePasswordRequest {
+  oldPassword?: string;
+  newPassword: string;
+}
+
+export interface UpdateProfilePictureRequest {
+  avatar: string;
+}
+
+export interface UpdateUserResponse extends ApiResponse {
+  user: User;
+}
+
+export interface UpdatePasswordResponse extends ApiResponse {
+  message: string;
+  user?: User;
 }

@@ -3,7 +3,9 @@
 import "dotenv/config";
 import { Response } from "express";
 import { IUser } from "../models/user.model";
-import { redis } from "./redis";
+import userModel from "../models/user.model";
+import { cacheUserSession } from "../services/user.service";
+import { formatUserForClient } from "./formatUser";
 
 interface ITokenOptions {
   expires: Date;
@@ -40,19 +42,21 @@ export const refreshTokenOptions: ITokenOptions = {
   secure: process.env.NODE_ENV === "production",
 };
 
-export const sendToken = (user: IUser, statusCode: number, res: Response) => {
+export const sendToken = async (user: IUser, statusCode: number, res: Response) => {
   const accessToken = user.signAccessToken();
   const refreshToken = user.signRefreshToken();
 
-  // upload session to redis
-  redis.set(user._id.toString(), JSON.stringify(user) as any);
+  const dbUser = await userModel.findById(user._id).select("+password");
+  const clientUser = formatUserForClient(dbUser ?? user);
+
+  await cacheUserSession(clientUser);
 
   res.cookie("accessToken", accessToken, accessTokenOptions);
   res.cookie("refreshToken", refreshToken, refreshTokenOptions);
 
   res.status(statusCode).json({
     success: true,
-    user,
+    user: clientUser,
     accessToken,
   });
 };

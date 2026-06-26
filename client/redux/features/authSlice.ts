@@ -32,6 +32,26 @@ const authSlice = createSlice({
       .addMatcher(apiSlice.endpoints.getMe.matchFulfilled, (state, action) => {
         state.user = action.payload.user;
       })
+      .addMatcher(
+        apiSlice.endpoints.updateUserInfo.matchFulfilled,
+        (state, action) => {
+          state.user = action.payload.user;
+        },
+      )
+      .addMatcher(
+        apiSlice.endpoints.updateProfilePicture.matchFulfilled,
+        (state, action) => {
+          state.user = action.payload.user;
+        },
+      )
+      .addMatcher(
+        apiSlice.endpoints.updatePassword.matchFulfilled,
+        (state, action) => {
+          if (action.payload.user) {
+            state.user = action.payload.user;
+          }
+        },
+      )
       .addMatcher(apiSlice.endpoints.logout.matchFulfilled, (state) => {
         state.user = null;
       });

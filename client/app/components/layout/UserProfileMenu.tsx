@@ -13,7 +13,7 @@ import toast from "react-hot-toast";
 import { useLogoutMutation } from "@/redux/features/apiSlice";
 import { useAuth } from "@/redux/hooks";
 import { getErrorMessage } from "@/redux/utils/getErrorMessage";
-import { formatRole } from "@/lib/user";
+import { formatRole, isAdmin } from "@/lib/user";
 import { cn } from "@/lib/utils";
 import UserAvatar from "../ui/UserAvatar";
 
@@ -200,35 +200,42 @@ const MenuItems: FC<MenuItemsProps> = ({
   onLogout,
   isLoggingOut,
   onNavigate,
-}) => (
-  <>
-    <Link
-      href="/dashboard"
-      role="menuitem"
-      onClick={onNavigate}
-      className="flex items-center gap-2 rounded-lg px-3 py-2 text-[13px] text-foreground transition-colors hover:bg-surface"
-    >
-      Dashboard
-    </Link>
-    <Link
-      href="/dashboard/settings"
-      role="menuitem"
-      onClick={onNavigate}
-      className="flex items-center gap-2 rounded-lg px-3 py-2 text-[13px] text-foreground transition-colors hover:bg-surface"
-    >
-      Settings
-    </Link>
-    <div className="my-1 border-t border-border" />
-    <button
-      type="button"
-      role="menuitem"
-      onClick={onLogout}
-      disabled={isLoggingOut}
-      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-[13px] text-red-500 transition-colors hover:bg-red-500/10 disabled:opacity-50"
-    >
-      {isLoggingOut ? "Signing out…" : "Sign out"}
-    </button>
-  </>
-);
+}) => {
+  const { user } = useAuth();
+  if (!user) return null;
+
+  return (
+    <>
+      {isAdmin(user.role) && (
+        <Link
+          href="/dashboard"
+          role="menuitem"
+          onClick={onNavigate}
+          className="flex items-center gap-2 rounded-lg px-3 py-2 text-[13px] text-foreground transition-colors hover:bg-surface"
+        >
+          Dashboard
+        </Link>
+      )}
+      <Link
+        href="/profile"
+        role="menuitem"
+        onClick={onNavigate}
+        className="flex items-center gap-2 rounded-lg px-3 py-2 text-[13px] text-foreground transition-colors hover:bg-surface"
+      >
+        Profile
+      </Link>
+      <div className="my-1 border-t border-border" />
+      <button
+        type="button"
+        role="menuitem"
+        onClick={onLogout}
+        disabled={isLoggingOut}
+        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-[13px] text-red-500 transition-colors hover:bg-red-500/10 disabled:opacity-50"
+      >
+        {isLoggingOut ? "Signing out…" : "Sign out"}
+      </button>
+    </>
+  );
+};
 
 export default UserProfileMenu;

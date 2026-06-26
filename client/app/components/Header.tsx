@@ -4,7 +4,7 @@ import { FC, useEffect, useState } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/redux/hooks";
-import { formatRole } from "@/lib/user";
+import { formatRole, isAdmin } from "@/lib/user";
 import ThemeToggle from "./ThemeToggle";
 import Button from "./ui/Button";
 import UserProfileMenu from "./layout/UserProfileMenu";
@@ -75,9 +75,12 @@ const Header: FC = () => {
             </div>
           ) : isAuthenticated && user ? (
             <>
-              <Link href="/dashboard" className="hidden lg:block">
+              <Link
+                href={isAdmin(user.role) ? "/dashboard" : "/profile"}
+                className="hidden lg:block"
+              >
                 <Button variant="secondary" size="sm">
-                  Dashboard
+                  {isAdmin(user.role) ? "Dashboard" : "Profile"}
                 </Button>
               </Link>
 
@@ -180,17 +183,26 @@ const Header: FC = () => {
                     </div>
                   </div>
 
-                  <Link href="/dashboard" onClick={closeMenu}>
-                    <Button className="w-full" size="md">
-                      Go to dashboard
-                    </Button>
-                  </Link>
-
-                  <Link href="/dashboard/settings" onClick={closeMenu}>
-                    <Button variant="secondary" className="w-full" size="md">
-                      Settings
-                    </Button>
-                  </Link>
+                  {isAdmin(user.role) ? (
+                    <>
+                      <Link href="/dashboard" onClick={closeMenu}>
+                        <Button className="w-full" size="md">
+                          Go to dashboard
+                        </Button>
+                      </Link>
+                      <Link href="/profile" onClick={closeMenu}>
+                        <Button variant="secondary" className="w-full" size="md">
+                          Profile settings
+                        </Button>
+                      </Link>
+                    </>
+                  ) : (
+                    <Link href="/profile" onClick={closeMenu}>
+                      <Button className="w-full" size="md">
+                        Go to profile
+                      </Button>
+                    </Link>
+                  )}
                 </div>
               ) : (
                 <div className="flex flex-col gap-2.5">

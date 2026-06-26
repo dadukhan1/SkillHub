@@ -104,7 +104,7 @@ export const userActivation = catchAsyncErrors(
       return next(new ErrorHandler("Email already exists.", 400));
     }
 
-    await userModel.create({ name, email, password });
+    await userModel.create({ name, email, password, isVerified: true });
 
     return res.status(201).json({
       success: true,
@@ -138,7 +138,7 @@ export const userLogin = catchAsyncErrors(
       return next(new ErrorHandler("Invalid email or password", 400));
     }
 
-    sendToken(user, 200, res);
+    await sendToken(user, 200, res);
   },
 );
 
@@ -241,7 +241,7 @@ export const socialAuth = catchAsyncErrors(
       });
     }
 
-    sendToken(user, 200, res);
+    await sendToken(user, 200, res);
   },
 );
 
@@ -259,22 +259,24 @@ export const updateUserInfo = catchAsyncErrors(
     if (!user) {
       return next(new ErrorHandler("User not found", 404));
     }
-    // Update user information
     if (name) user.name = name;
     if (email) user.email = email;
     await user.save();
 
-    await redis.set(userId, JSON.stringify(user));
+    const clientUser = await getUserById(userId);
+    if (!clientUser) {
+      return next(new ErrorHandler("User not found", 404));
+    }
 
     return res.status(200).json({
       success: true,
-      user,
+      user: clientUser,
     });
   },
 );
 
 interface IUpdatePassword {
-  oldPassword: string;
+  oldPassword?: string;
   newPassword: string;
 }
 
@@ -282,8 +284,8 @@ export const updatePassword = catchAsyncErrors(
   async (req: Request, res: Response, next: NextFunction) => {
     const { oldPassword, newPassword } = req.body as IUpdatePassword;
 
-    if (!oldPassword || !newPassword) {
-      return next(new ErrorHandler("Please provide old and new password", 400));
+    if (!newPassword) {
+      return next(new ErrorHandler("Please provide a new password", 400));
     }
 
     const user = await userModel
@@ -294,25 +296,35 @@ export const updatePassword = catchAsyncErrors(
       return next(new ErrorHandler("User not found", 404));
     }
 
-    if (!user?.password) {
-      return next(
-        new ErrorHandler("Password login not enabled for this account", 400),
-      );
-    }
+    const hadPassword = Boolean(user.password);
 
-    const isPasswordMatch = await user?.comparePassword(oldPassword);
-    if (!isPasswordMatch) {
-      return next(new ErrorHandler("Old password is incorrect", 400));
+    if (user.password) {
+      if (!oldPassword) {
+        return next(
+          new ErrorHandler("Please provide your current password", 400),
+        );
+      }
+
+      const isPasswordMatch = await user.comparePassword(oldPassword);
+      if (!isPasswordMatch) {
+        return next(new ErrorHandler("Old password is incorrect", 400));
+      }
     }
 
     user.password = newPassword;
     await user.save();
 
-    await redis.set(user._id.toString(), JSON.stringify(user));
+    const clientUser = await getUserById(user._id.toString());
+    if (!clientUser) {
+      return next(new ErrorHandler("User not found", 404));
+    }
 
     return res.status(200).json({
       success: true,
-      message: "Password updated successfully",
+      message: hadPassword
+        ? "Password updated successfully"
+        : "Password set successfully",
+      user: clientUser,
     });
   },
 );
@@ -344,11 +356,14 @@ export const updateProfilePicture = catchAsyncErrors(
 
     await user.save();
 
-    await redis.set(userId, JSON.stringify(user));
+    const clientUser = await getUserById(userId);
+    if (!clientUser) {
+      return next(new ErrorHandler("User not found", 404));
+    }
 
     return res.status(200).json({
       success: true,
-      user,
+      user: clientUser,
     });
   },
 );

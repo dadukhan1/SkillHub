@@ -10,6 +10,11 @@ import type {
   RegisterResponse,
   SocialAuthRequest,
   SocialAuthResponse,
+  UpdatePasswordRequest,
+  UpdatePasswordResponse,
+  UpdateProfilePictureRequest,
+  UpdateUserInfoRequest,
+  UpdateUserResponse,
 } from "../types/auth";
 import { baseQueryWithReauth } from "../utils/baseQueryWithReauth";
 
@@ -65,6 +70,33 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ["User"],
     }),
+    updateUserInfo: builder.mutation<UpdateUserResponse, UpdateUserInfoRequest>({
+      query: (body) => ({
+        url: "/update-user-info",
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["User"],
+    }),
+    updatePassword: builder.mutation<UpdatePasswordResponse, UpdatePasswordRequest>({
+      query: (body) => ({
+        url: "/update-user-password",
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["User"],
+    }),
+    updateProfilePicture: builder.mutation<
+      UpdateUserResponse,
+      UpdateProfilePictureRequest
+    >({
+      query: (body) => ({
+        url: "/update-profile-picture",
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["User"],
+    }),
   }),
 });
 
@@ -76,4 +108,7 @@ export const {
   useRefreshTokenMutation,
   useGetMeQuery,
   useLogoutMutation,
+  useUpdateUserInfoMutation,
+  useUpdatePasswordMutation,
+  useUpdateProfilePictureMutation,
 } = apiSlice;

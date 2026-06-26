@@ -16,3 +16,11 @@ export function formatRole(role: string): string {
   if (role === "admin") return "Admin";
   return "Learner";
 }
+
+export function isAdmin(role: string): boolean {
+  return role === "admin";
+}
+
+export function getAuthenticatedHomePath(user: { role: string }): string {
+  return isAdmin(user.role) ? "/dashboard" : "/profile";
+}
