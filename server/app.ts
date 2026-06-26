@@ -16,9 +16,14 @@ import layoutRouter from "./routes/layout.route";
 app.use(express.json({ limit: "50mb" }));
 app.use(cookieParser());
 
+const allowedOrigin = (process.env.ORIGIN ?? "http://localhost:3000")
+  .trim()
+  .replace(/\/$/, "");
+
 app.use(
   cors({
-    origin: process.env.ORIGIN,
+    origin: allowedOrigin,
+    credentials: true,
   }),
 );
 
