@@ -133,7 +133,7 @@ export function validateCourseForm(
   );
 
   if (hasIncompleteLesson) {
-    for (const [index, lesson] of values.courseData.entries()) {
+    for (const lesson of values.courseData) {
       const hasAnyField =
         lesson.title.trim() ||
         lesson.description.trim() ||
@@ -143,17 +143,19 @@ export function validateCourseForm(
 
       if (!hasAnyField) continue;
 
+      const lessonName = lesson.title.trim() || "Untitled lesson";
+
       if (!lesson.title.trim()) {
-        return `Lesson ${index + 1} needs a title.`;
+        return `"${lessonName}" needs a title.`;
       }
       if (!lesson.description.trim()) {
-        return `Lesson ${index + 1} needs a description.`;
+        return `"${lessonName}" needs a description.`;
       }
       if (!lesson.videoUrl.trim()) {
-        return `Lesson ${index + 1} needs a video URL.`;
+        return `"${lessonName}" needs a video URL.`;
       }
       if (!lesson.videoLength.trim() || Number.isNaN(Number(lesson.videoLength))) {
-        return `Lesson ${index + 1} needs a valid duration in minutes.`;
+        return `"${lessonName}" needs a valid duration in minutes.`;
       }
     }
   }

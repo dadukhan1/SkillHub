@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import CourseFormSection from "@/app/components/admin/course/CourseFormSection";
+import LessonEditor from "@/app/components/admin/course/LessonEditor";
 import Button from "@/app/components/ui/Button";
 import Input from "@/app/components/ui/Input";
 import Select from "@/app/components/ui/Select";
@@ -13,7 +14,6 @@ import Textarea from "@/app/components/ui/Textarea";
 import { fileToBase64 } from "@/lib/files";
 import {
   COURSE_LEVELS,
-  VIDEO_PLAYERS,
   createEmptyLesson,
   formValuesToPayload,
   type CourseFormValues,
@@ -36,6 +36,9 @@ const CourseForm: FC<CourseFormProps> = ({ mode, courseId, initialValues }) => {
   const router = useRouter();
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
   const [values, setValues] = useState(initialValues);
+  const [collapsedLessons, setCollapsedLessons] = useState<Record<string, boolean>>(
+    {},
+  );
 
   const [createCourse, { isLoading: isCreating }] = useCreateCourseMutation();
   const [editCourse, { isLoading: isEditing }] = useEditCourseMutation();
@@ -96,19 +99,40 @@ const CourseForm: FC<CourseFormProps> = ({ mode, courseId, initialValues }) => {
   };
 
   const addLesson = () => {
+    const lesson = createEmptyLesson();
     setValues((current) => ({
       ...current,
-      courseData: [...current.courseData, createEmptyLesson()],
+      courseData: [...current.courseData, lesson],
     }));
+    setCollapsedLessons((current) => {
+      const next = { ...current };
+      delete next[lesson.key];
+      return next;
+    });
   };
 
   const removeLesson = (index: number) => {
+    const removedKey = values.courseData[index]?.key;
     setValues((current) => ({
       ...current,
       courseData:
         current.courseData.length === 1
           ? [createEmptyLesson()]
           : current.courseData.filter((_, lessonIndex) => lessonIndex !== index),
+    }));
+    if (removedKey) {
+      setCollapsedLessons((current) => {
+        const next = { ...current };
+        delete next[removedKey];
+        return next;
+      });
+    }
+  };
+
+  const toggleLesson = (key: string) => {
+    setCollapsedLessons((current) => ({
+      ...current,
+      [key]: !current[key],
     }));
   };
 
@@ -334,86 +358,18 @@ const CourseForm: FC<CourseFormProps> = ({ mode, courseId, initialValues }) => {
       <CourseFormSection
         label="Curriculum"
         title="Course content"
-        description="Add lessons with video details. Each lesson becomes part of the structured path."
+        description="Add lessons with video details. Name each lesson and collapse sections to keep your curriculum organized."
       >
-        <div className="space-y-4">
+        <div className="space-y-3">
           {values.courseData.map((lesson, index) => (
-            <div
+            <LessonEditor
               key={lesson.key}
-              className="rounded-[14px] border border-border bg-surface/40 p-5"
-            >
-              <div className="mb-4 flex items-center justify-between gap-3">
-                <p className="text-[13px] font-medium text-foreground">
-                  Lesson {index + 1}
-                </p>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="text-red-500 hover:bg-red-500/10 hover:text-red-500"
-                  onClick={() => removeLesson(index)}
-                >
-                  Remove
-                </Button>
-              </div>
-
-              <div className="space-y-4">
-                <Input
-                  label="Lesson title"
-                  value={lesson.title}
-                  onChange={(event) => updateLesson(index, "title", event.target.value)}
-                  placeholder="Introduction to React Patterns"
-                />
-                <Textarea
-                  label="Lesson description"
-                  value={lesson.description}
-                  onChange={(event) =>
-                    updateLesson(index, "description", event.target.value)
-                  }
-                  placeholder="Brief overview of what this lesson covers."
-                  className="min-h-[96px]"
-                />
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <Input
-                    label="Video section"
-                    value={lesson.videoSection}
-                    onChange={(event) =>
-                      updateLesson(index, "videoSection", event.target.value)
-                    }
-                    placeholder="Module 1"
-                  />
-                  <Select
-                    label="Video player"
-                    value={lesson.videoPlayer}
-                    onChange={(event) =>
-                      updateLesson(index, "videoPlayer", event.target.value)
-                    }
-                    options={VIDEO_PLAYERS.map((player) => ({
-                      value: player,
-                      label: player.charAt(0).toUpperCase() + player.slice(1),
-                    }))}
-                  />
-                </div>
-                <Input
-                  label="Video URL"
-                  type="url"
-                  value={lesson.videoUrl}
-                  onChange={(event) => updateLesson(index, "videoUrl", event.target.value)}
-                  placeholder="https://youtube.com/watch?v=..."
-                />
-                <Input
-                  label="Duration (minutes)"
-                  type="number"
-                  min="1"
-                  step="1"
-                  value={lesson.videoLength}
-                  onChange={(event) =>
-                    updateLesson(index, "videoLength", event.target.value)
-                  }
-                  placeholder="12"
-                />
-              </div>
-            </div>
+              lesson={lesson}
+              isCollapsed={collapsedLessons[lesson.key] ?? false}
+              onToggle={() => toggleLesson(lesson.key)}
+              onUpdate={(key, value) => updateLesson(index, key, value)}
+              onRemove={() => removeLesson(index)}
+            />
           ))}
         </div>
 
