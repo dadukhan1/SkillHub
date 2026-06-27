@@ -24,6 +24,8 @@ const CourseDetailPage: FC = () => {
   const courseId = params?.id ?? "";
   const { user } = useAuth();
   const [showVideo, setShowVideo] = useState(false);
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+
   const { data, isLoading, isError, error } = useGetCourseQuery(courseId, {
     skip: !courseId,
   });
@@ -45,6 +47,13 @@ const CourseDetailPage: FC = () => {
     : [];
 
   const totalVideos = course?.courseData?.length ?? 0;
+
+  const toggleSection = (key: string) => {
+    setOpenSections((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
 
   if (isLoading) {
     return (
@@ -79,7 +88,7 @@ const CourseDetailPage: FC = () => {
         </div>
       </header>
 
-      <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+      <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-20">
         <div className="mx-auto max-w-6xl px-4 py-8 sm:px-8 sm:py-12">
           <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:gap-14">
             <div className="animate-fade-up">
@@ -90,6 +99,38 @@ const CourseDetailPage: FC = () => {
               <p className="mt-5 max-w-2xl text-[16px] leading-[1.65] text-muted">
                 {course.description}
               </p>
+
+              {/* Benefits & Pre-requisites */}
+              <div className="mt-8 flex flex-col gap-6 sm:flex-row">
+                {course.benefits && course.benefits.length > 0 && (
+                  <div className="flex-1 rounded-[14px] bg-card p-5 border border-border">
+                    <p className="text-[14px] font-semibold mb-3">What you'll learn</p>
+                    <ul className="space-y-2">
+                      {course.benefits.map((b, i) => (
+                        <li key={i} className="flex gap-2 text-[13px] text-muted">
+                          <svg className="h-4 w-4 shrink-0 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          <span>{b.title}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {course.preRequisites && course.preRequisites.length > 0 && (
+                  <div className="flex-1 rounded-[14px] bg-card p-5 border border-border">
+                    <p className="text-[14px] font-semibold mb-3">Requirements</p>
+                    <ul className="space-y-2">
+                      {course.preRequisites.map((p, i) => (
+                        <li key={i} className="flex gap-2 text-[13px] text-muted">
+                          <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-muted-foreground" />
+                          <span>{p.title}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
 
               <div className="mt-8 grid grid-cols-3 gap-6 border-t border-border pt-8 sm:max-w-md">
                 <div>
@@ -105,9 +146,30 @@ const CourseDetailPage: FC = () => {
                   <p className="mt-1 text-[13px] text-muted">Videos</p>
                 </div>
                 <div>
-                  <p className="text-xl font-semibold tracking-[-0.02em]">
-                    {(course.ratings ?? 0).toFixed(1)}
-                  </p>
+                  <div className="flex items-center gap-1.5 h-[28px]">
+                    <span className="text-xl font-semibold tracking-[-0.02em] leading-none">
+                      {(course.ratings ?? 0).toFixed(1)}
+                    </span>
+                    <div className="flex items-center gap-0.5 mt-0.5">
+                      {[1, 2, 3, 4, 5].map((star) => {
+                        const rating = course.ratings ?? 0;
+                        const isFull = rating >= star;
+                        const isHalf = rating >= star - 0.5 && rating < star;
+                        return (
+                          <svg
+                            key={star}
+                            className={`h-4 w-4 ${
+                              isFull || isHalf ? "text-yellow-400" : "text-muted-foreground/30"
+                            }`}
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                          </svg>
+                        );
+                      })}
+                    </div>
+                  </div>
                   <p className="mt-1 text-[13px] text-muted">Rating</p>
                 </div>
               </div>
@@ -135,7 +197,7 @@ const CourseDetailPage: FC = () => {
             </div>
 
             <div className="animate-fade-up-delay-1">
-              <div className="overflow-hidden rounded-[16px] border border-border bg-card shadow-soft">
+              <div className="overflow-hidden rounded-[16px] border border-border bg-card shadow-soft sticky top-4">
                 <div className="relative bg-surface">
                   {showVideo ? (
                     <CourseVideoPlayer videoId={course.demoUrl} title={course.name} />
@@ -189,27 +251,58 @@ const CourseDetailPage: FC = () => {
 
           {sections.length > 0 && (
             <section className="animate-fade-up-delay-2 mt-14 border-t border-border pt-10">
-              <p className="label mb-6">Curriculum preview</p>
-              <div className="space-y-3">
-                {sections.map((section) => (
-                  <div
-                    key={section.key}
-                    className="rounded-[14px] border border-border bg-card p-4"
-                  >
-                    <p className="text-[14px] font-medium">{section.title}</p>
-                    <ul className="mt-3 space-y-2">
-                      {section.videos.map((video) => (
-                        <li
-                          key={video.key}
-                          className="flex items-center justify-between text-[13px] text-muted"
-                        >
-                          <span>{video.title}</span>
-                          <span>{formatVideoDuration(video.videoLength)}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
+              <p className="label mb-6">Course Curriculum</p>
+              <div className="max-w-3xl space-y-3">
+                {sections.map((section, index) => {
+                  const isOpen = openSections[section.key] ?? (index === 0);
+                  
+                  return (
+                    <div
+                      key={section.key}
+                      className="rounded-[14px] border border-border bg-card overflow-hidden"
+                    >
+                      <button 
+                        onClick={() => toggleSection(section.key)}
+                        className="flex w-full items-center justify-between p-4 sm:p-5 text-left hover:bg-border/30 transition-colors"
+                      >
+                        <div>
+                          <p className="text-[14px] font-medium text-foreground">{section.title}</p>
+                          <p className="text-[12px] text-muted mt-0.5">{section.videos.length} videos</p>
+                        </div>
+                        <span className={`flex h-7 w-7 items-center justify-center rounded-full border border-border text-muted transition-transform duration-300 ${isOpen ? "rotate-180 bg-border/50" : ""}`}>
+                          <svg width="12" height="12" viewBox="0 0 15 15" fill="none">
+                            <path d="M3.13523 6.15803C3.3241 5.95657 3.64052 5.94637 3.84197 6.13523L7.5 9.56464L11.158 6.13523C11.3595 5.94637 11.6759 5.95657 11.8648 6.15803C12.0536 6.35949 12.0434 6.67591 11.842 6.86477L7.84197 10.6148C7.64964 10.7951 7.35036 10.7951 7.15803 10.6148L3.15803 6.86477C2.95657 6.67591 2.94637 6.35949 3.13523 6.15803Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd" />
+                          </svg>
+                        </span>
+                      </button>
+
+                      <div
+                        className={`grid transition-all duration-300 ease-in-out ${
+                          isOpen ? "grid-rows-[1fr] opacity-100 border-t border-border" : "grid-rows-[0fr] opacity-0"
+                        }`}
+                      >
+                        <div className="overflow-hidden">
+                          <ul className="divide-y divide-border/50">
+                            {section.videos.map((video, idx) => (
+                              <li
+                                key={video.key}
+                                className="flex items-start justify-between gap-4 p-4 sm:px-5 hover:bg-border/20 transition-colors"
+                              >
+                                <div className="flex gap-3">
+                                  <span className="text-[13px] text-muted-foreground w-4 text-right pt-0.5">{idx + 1}.</span>
+                                  <span className="text-[13px] text-foreground font-medium">{video.title}</span>
+                                </div>
+                                <span className="text-[12px] text-muted shrink-0 pt-0.5">
+                                  {formatVideoDuration(video.videoLength)}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </section>
           )}
