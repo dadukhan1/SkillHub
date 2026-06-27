@@ -63,7 +63,7 @@ const UserProfileMenu: FC<UserProfileMenuProps> = ({
       await signOut({ redirect: false });
       setOpen(false);
       toast.success("Signed out successfully.");
-      router.push("/signin");
+      router.push("/");
     } catch (error) {
       toast.error(getErrorMessage(error, "Unable to sign out."));
     }

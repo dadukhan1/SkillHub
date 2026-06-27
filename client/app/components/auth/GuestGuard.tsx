@@ -3,7 +3,6 @@
 import { FC, ReactNode, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/redux/hooks";
-import { getAuthenticatedHomePath } from "@/lib/user";
 import AuthLoadingScreen from "./AuthLoadingScreen";
 
 interface GuestGuardProps {
@@ -16,7 +15,7 @@ const GuestGuard: FC<GuestGuardProps> = ({ children }) => {
 
   useEffect(() => {
     if (!isChecking && isAuthenticated && user) {
-      router.replace(getAuthenticatedHomePath(user));
+      router.replace("/");
     }
   }, [isChecking, isAuthenticated, user, router]);
 
