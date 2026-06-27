@@ -36,7 +36,6 @@ const CourseForm: FC<CourseFormProps> = ({ mode, courseId, initialValues }) => {
   const router = useRouter();
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
   const [values, setValues] = useState(initialValues);
-  const [formError, setFormError] = useState<string | null>(null);
 
   const [createCourse, { isLoading: isCreating }] = useCreateCourseMutation();
   const [editCourse, { isLoading: isEditing }] = useEditCourseMutation();
@@ -139,11 +138,10 @@ const CourseForm: FC<CourseFormProps> = ({ mode, courseId, initialValues }) => {
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    setFormError(null);
 
     const validationError = validateCourseForm(values, mode);
     if (validationError) {
-      setFormError(validationError);
+      toast.error(validationError);
       return;
     }
 
@@ -161,22 +159,17 @@ const CourseForm: FC<CourseFormProps> = ({ mode, courseId, initialValues }) => {
       router.push("/dashboard/courses");
       router.refresh();
     } catch (error) {
-      const message = getErrorMessage(
-        error,
-        mode === "create" ? "Failed to create course." : "Failed to update course.",
+      toast.error(
+        getErrorMessage(
+          error,
+          mode === "create" ? "Failed to create course." : "Failed to update course.",
+        ),
       );
-      setFormError(message);
-      toast.error(message);
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {formError && (
-        <div className="rounded-[12px] border border-red-500/20 bg-red-500/5 px-4 py-3 text-sm text-red-500">
-          {formError}
-        </div>
-      )}
 
       <CourseFormSection
         label="Basics"

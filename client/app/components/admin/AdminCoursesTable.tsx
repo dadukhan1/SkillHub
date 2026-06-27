@@ -3,6 +3,7 @@
 import { FC, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import toast from "react-hot-toast";
 import Badge from "@/app/components/ui/Badge";
 import Button from "@/app/components/ui/Button";
 import {
@@ -21,7 +22,6 @@ interface AdminCoursesTableProps {
 const AdminCoursesTable: FC<AdminCoursesTableProps> = ({ courses }) => {
   const [deleteCourse, { isLoading: isDeleting }] = useDeleteCourseMutation();
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   const handleDelete = async (course: AdminCourse) => {
     const confirmed = window.confirm(
@@ -30,12 +30,12 @@ const AdminCoursesTable: FC<AdminCoursesTableProps> = ({ courses }) => {
     if (!confirmed) return;
 
     setPendingDeleteId(course._id);
-    setError(null);
 
     try {
       await deleteCourse(course._id).unwrap();
+      toast.success(`"${course.name}" deleted successfully.`);
     } catch (err) {
-      setError(getErrorMessage(err, "Failed to delete course."));
+      toast.error(getErrorMessage(err, "Failed to delete course."));
     } finally {
       setPendingDeleteId(null);
     }
@@ -54,12 +54,6 @@ const AdminCoursesTable: FC<AdminCoursesTableProps> = ({ courses }) => {
 
   return (
     <div className="space-y-4">
-      {error && (
-        <div className="rounded-[12px] border border-red-500/20 bg-red-500/5 px-4 py-3 text-sm text-red-500">
-          {error}
-        </div>
-      )}
-
       <div className="hidden overflow-hidden rounded-[14px] border border-border bg-card lg:block">
         <table className="w-full text-left text-sm">
           <thead className="border-b border-border bg-surface/50">
