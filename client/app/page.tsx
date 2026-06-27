@@ -6,6 +6,7 @@ import Categories from "./components/landing/Categories";
 import InstructorHighlights from "./components/landing/InstructorHighlights";
 import Testimonials from "./components/landing/Testimonials";
 import CtaSection from "./components/landing/CtaSection";
+import FAQ from "./components/landing/FAQ";
 
 export default function HomePage() {
   return (
@@ -19,6 +20,7 @@ export default function HomePage() {
           <InstructorHighlights />
         </section>
         <Testimonials />
+        <FAQ />
         <CtaSection />
       </main>
       <Footer />

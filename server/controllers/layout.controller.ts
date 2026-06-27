@@ -103,10 +103,15 @@ export const updateLayout = catchAsyncErrors(
           };
         }),
       );
-      await LayoutModel.findByIdAndUpdate(FaqItem?._id, {
-        type: "FAQ",
-        faq: faqItems,
-      });
+      
+      if (!FaqItem) {
+        await LayoutModel.create({ type: "FAQ", faq: faqItems });
+      } else {
+        await LayoutModel.findByIdAndUpdate(FaqItem._id, {
+          type: "FAQ",
+          faq: faqItems,
+        });
+      }
     }
     if (type === "Categories") {
       const { categories } = req.body;
@@ -118,10 +123,18 @@ export const updateLayout = catchAsyncErrors(
           };
         }),
       );
-      await LayoutModel.findByIdAndUpdate(categoriesData?._id, {
-        type: "Categories",
-        categories: categoriesItems,
-      });
+      
+      if (!categoriesData) {
+        await LayoutModel.create({
+          type: "Categories",
+          categories: categoriesItems,
+        });
+      } else {
+        await LayoutModel.findByIdAndUpdate(categoriesData._id, {
+          type: "Categories",
+          categories: categoriesItems,
+        });
+      }
     }
 
     return res.status(200).json({
@@ -134,7 +147,7 @@ export const updateLayout = catchAsyncErrors(
 // get layout by type
 export const getLayoutByType = catchAsyncErrors(
   async (req: Request, res: Response) => {
-    const type = req.body.type;
+    const type = req.params.type;
     const layout = await LayoutModel.findOne({ type });
     res.status(201).json({
       success: true,
