@@ -10,6 +10,7 @@ import ErrorHandler from "../utils/ErrorHandler";
 import mongoose from "mongoose";
 import { sendMail } from "../utils/sendMail";
 import NotificationModel from "../models/notification.model";
+import axios from "axios";
 
 export const uploadCourse = catchAsyncErrors(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -111,7 +112,7 @@ export const getSingleCourse = catchAsyncErrors(
       "-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links",
     );
 
-    await redis.set(courseId, JSON.stringify(course), 'EX', 604800); // 7 days expiry
+    await redis.set(courseId, JSON.stringify(course), "EX", 604800); // 7 days expiry
 
     return res.status(200).json({
       success: true,
@@ -151,12 +152,15 @@ export const getCoursesByUser = catchAsyncErrors(
   async (req: Request, res: Response, next: NextFunction) => {
     const userCoursesList = req.user?.courses;
     const courseId = req.params.id;
+    const isAdmin = req.user?.role === "admin";
 
     const courseExists = userCoursesList?.find(
-      (course: any) => course._id.toString() === courseId,
+      (course: any) =>
+        course.courseId?.toString() === courseId ||
+        course._id?.toString() === courseId,
     );
 
-    if (!courseExists) {
+    if (!courseExists && !isAdmin) {
       return next(
         new ErrorHandler("Your not eligible to access this course.", 400),
       );
@@ -164,11 +168,21 @@ export const getCoursesByUser = catchAsyncErrors(
 
     const course = await CourseModel.findById(courseId);
 
-    const content = course?.courseData;
+    if (!course) {
+      return next(new ErrorHandler("Course not found", 404));
+    }
 
     return res.status(200).json({
       success: true,
-      content,
+      course: {
+        _id: course._id,
+        name: course.name,
+        description: course.description,
+        thumbnail: course.thumbnail,
+        level: course.level,
+        tags: course.tags,
+      },
+      content: course.courseData,
     });
   },
 );
@@ -445,5 +459,40 @@ export const deleteCourse = catchAsyncErrors(
       success: true,
       message: "Course deleted successfully.",
     });
+  },
+);
+
+export const generateVideoUrl = catchAsyncErrors(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { videoId } = req.body;
+
+    if (!videoId || typeof videoId !== "string") {
+      return next(new ErrorHandler("Video ID is required", 400));
+    }
+
+    if (!process.env.VDOCIPHER_API_KEY) {
+      return next(new ErrorHandler("VdoCipher API key is not configured", 500));
+    }
+
+    try {
+      const response = await axios.post(
+        `https://dev.vdocipher.com/api/videos/${videoId.trim()}/otp`,
+        { ttl: 300 },
+        {
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            Authorization: `Apisecret ${process.env.VDOCIPHER_API_KEY}`,
+          },
+        },
+      );
+
+      return res.status(200).json({
+        success: true,
+        videoUrl: response.data,
+      });
+    } catch {
+      return next(new ErrorHandler("Failed to generate video access", 502));
+    }
   },
 );

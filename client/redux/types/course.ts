@@ -86,3 +86,60 @@ export interface CoursePayload {
   }>;
   thumbnail?: string;
 }
+
+export interface PublicCourse {
+  _id: string;
+  name: string;
+  description: string;
+  price: number;
+  estimatedPrice?: number;
+  thumbnail?: CourseThumbnail;
+  tags: string;
+  level: string;
+  demoUrl: string;
+  benefits?: Array<{ title: string }>;
+  preRequisites?: Array<{ title: string }>;
+  ratings?: number;
+  purchased?: number;
+  courseData?: Array<{
+    title: string;
+    videoSection?: string;
+    videoLength?: number;
+  }>;
+}
+
+export interface GetPublicCourseResponse {
+  success: boolean;
+  course: PublicCourse;
+}
+
+export interface CoursePlayerMeta {
+  _id: string;
+  name: string;
+  description: string;
+  thumbnail?: CourseThumbnail;
+  level: string;
+  tags: string;
+}
+
+export interface GetCourseContentResponse {
+  success: boolean;
+  course: CoursePlayerMeta;
+  content: CourseLesson[];
+}
+
+export interface VdoCipherPlayback {
+  otp: string;
+  playbackInfo: string;
+}
+
+export interface GenerateVideoUrlResponse {
+  success: boolean;
+  videoUrl: VdoCipherPlayback;
+}
+
+export interface CurriculumSection {
+  key: string;
+  title: string;
+  videos: Array<CourseLesson & { key: string }>;
+}

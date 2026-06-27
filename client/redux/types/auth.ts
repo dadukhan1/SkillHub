@@ -87,3 +87,14 @@ export interface UpdatePasswordResponse extends ApiResponse {
   message: string;
   user?: User;
 }
+
+export interface GetAllUsersResponse extends ApiResponse {
+  users: User[];
+}
+
+export interface UpdateUserRoleRequest {
+  id: string;
+  role: string;
+}
+
+export interface DeleteUserResponse extends ApiResponse {}

@@ -249,16 +249,22 @@ const CourseForm: FC<CourseFormProps> = ({ mode, courseId, initialValues }) => {
     const payload = formValuesToPayload(values);
 
     try {
+      let savedCourseId = courseId;
+
       if (mode === "create") {
-        await createCourse(payload).unwrap();
+        const result = await createCourse(payload).unwrap();
+        savedCourseId = result.course._id;
         toast.success("Course created successfully.");
       } else if (courseId) {
         await editCourse({ id: courseId, body: payload }).unwrap();
         toast.success("Course updated successfully.");
+        savedCourseId = courseId;
       }
 
-      router.push("/dashboard/courses");
-      router.refresh();
+      if (savedCourseId) {
+        router.push(`/courses/${savedCourseId}/preview`);
+        router.refresh();
+      }
     } catch (error) {
       toast.error(
         getErrorMessage(
@@ -336,7 +342,7 @@ const CourseForm: FC<CourseFormProps> = ({ mode, courseId, initialValues }) => {
         </div>
         <Input
           label="Demo URL"
-          type="url"
+          type="text"
           value={values.demoUrl}
           onChange={(event) => updateField("demoUrl", event.target.value)}
           placeholder="https://youtube.com/watch?v=..."

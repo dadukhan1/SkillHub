@@ -81,7 +81,7 @@ const AdminDashboardPage: FC = () => {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[
             { label: "Courses", href: "/dashboard/courses", enabled: true },
-            { label: "Users", href: "/dashboard/users", enabled: false },
+            { label: "Users", href: "/dashboard/users", enabled: true },
             { label: "Analytics", href: "/dashboard/analytics", enabled: false },
             { label: "Settings", href: "/dashboard/settings", enabled: false },
           ].map((module) => (

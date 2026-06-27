@@ -79,15 +79,22 @@ const VideoEditor: FC<VideoEditorProps> = ({
             onChange={(event) => onUpdate("videoPlayer", event.target.value)}
             options={VIDEO_PLAYERS.map((player) => ({
               value: player,
-              label: player.charAt(0).toUpperCase() + player.slice(1),
+              label:
+                player === "custom"
+                  ? "VdoCipher"
+                  : player.charAt(0).toUpperCase() + player.slice(1),
             }))}
           />
           <Input
-            label="Video URL"
-            type="url"
+            label={video.videoPlayer === "custom" ? "VdoCipher video ID" : "Video URL"}
+            type="text"
             value={video.videoUrl}
             onChange={(event) => onUpdate("videoUrl", event.target.value)}
-            placeholder="https://youtube.com/watch?v=..."
+            placeholder={
+              video.videoPlayer === "custom"
+                ? "5739500097072ee3b7d7541efa91111"
+                : "https://youtube.com/watch?v=..."
+            }
           />
           <Input
             label="Duration (minutes)"

@@ -2,6 +2,8 @@ import { createApi } from "@reduxjs/toolkit/query/react";
 import type {
   ActivateRequest,
   ApiResponse,
+  DeleteUserResponse,
+  GetAllUsersResponse,
   GetMeResponse,
   LoginRequest,
   LoginResponse,
@@ -15,13 +17,14 @@ import type {
   UpdateProfilePictureRequest,
   UpdateUserInfoRequest,
   UpdateUserResponse,
+  UpdateUserRoleRequest,
 } from "../types/auth";
 import { baseQueryWithReauth } from "../utils/baseQueryWithReauth";
 
 export const apiSlice = createApi({
   reducerPath: "api",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["User", "AdminCourse"],
+  tagTypes: ["User", "AdminCourse", "Course", "CourseContent"],
   endpoints: (builder) => ({
     register: builder.mutation<RegisterResponse, RegisterRequest>({
       query: (body) => ({
@@ -97,6 +100,28 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ["User"],
     }),
+    getAllUsers: builder.query<GetAllUsersResponse, void>({
+      query: () => ({
+        url: "/get-all-users",
+        method: "GET",
+      }),
+      providesTags: ["User"],
+    }),
+    updateUserRole: builder.mutation<UpdateUserResponse, UpdateUserRoleRequest>({
+      query: (body) => ({
+        url: "/update-user-role",
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["User"],
+    }),
+    deleteUser: builder.mutation<DeleteUserResponse, string>({
+      query: (id) => ({
+        url: `/delete-user/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["User"],
+    }),
   }),
 });
 
@@ -111,4 +136,7 @@ export const {
   useUpdateUserInfoMutation,
   useUpdatePasswordMutation,
   useUpdateProfilePictureMutation,
+  useGetAllUsersQuery,
+  useUpdateUserRoleMutation,
+  useDeleteUserMutation,
 } = apiSlice;

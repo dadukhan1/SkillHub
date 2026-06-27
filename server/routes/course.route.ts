@@ -7,6 +7,7 @@ import {
   addReviewReply,
   deleteCourse,
   editCourse,
+  generateVideoUrl,
   getAllCourses,
   getAllCoursesForAdmin,
   getCourseForAdmin,
@@ -56,6 +57,10 @@ courseRouter.delete(
   isAuthenticated,
   authorizeRoles("admin"),
   deleteCourse,
+);
+courseRouter.post(
+  "/generate-video-url",
+  generateVideoUrl,
 );
 
 export default courseRouter;

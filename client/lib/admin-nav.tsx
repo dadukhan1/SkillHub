@@ -34,7 +34,7 @@ export const adminNavItems: AdminNavItem[] = [
   {
     label: "Users",
     href: "/dashboard/users",
-    enabled: false,
+    enabled: true,
     icon: (
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
