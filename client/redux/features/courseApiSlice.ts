@@ -1,4 +1,5 @@
 import type {
+  AdminCourse,
   CoursePayload,
   CreateCourseResponse,
   DeleteCourseResponse,
@@ -9,10 +10,19 @@ import type {
   GetCourseContentResponse,
   GetPublicCourseResponse,
 } from "../types/course";
+
+export interface GetPublicCoursesResponse {
+  success: boolean;
+  courses: AdminCourse[];
+}
 import { apiSlice } from "./apiSlice";
 
 export const courseApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
+    getPublicCourses: builder.query<GetPublicCoursesResponse, void>({
+      query: () => "/get-courses",
+      providesTags: [{ type: "Course", id: "PUBLIC_LIST" }],
+    }),
     getCourse: builder.query<GetPublicCourseResponse, string>({
       query: (id) => `/get-course/${id}`,
       providesTags: (_result, _error, id) => [{ type: "Course", id }],
@@ -91,6 +101,7 @@ export const courseApiSlice = apiSlice.injectEndpoints({
 });
 
 export const {
+  useGetPublicCoursesQuery,
   useGetCourseQuery,
   useGetCourseContentQuery,
   useGenerateVideoUrlMutation,

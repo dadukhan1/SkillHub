@@ -22,7 +22,7 @@ analyticsRouter.get(
   getOrdersAnalytics,
 );
 analyticsRouter.get(
-  "/get-orders-analytics",
+  "/get-courses-analytics",
   isAuthenticated,
   authorizeRoles("admin"),
   getCoursesAnalytics,

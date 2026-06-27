@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Header from "./components/Header";
 import Footer from "./components/layout/Footer";
 import Hero from "./components/landing/Hero";
@@ -14,8 +15,12 @@ export default function HomePage() {
       <Header />
       <main>
         <Hero />
-        <FeaturedCourses />
-        <Categories />
+        <Suspense>
+          <FeaturedCourses />
+        </Suspense>
+        <Suspense>
+          <Categories />
+        </Suspense>
         <section id="instructors">
           <InstructorHighlights />
         </section>
