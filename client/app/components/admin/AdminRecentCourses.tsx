@@ -7,6 +7,7 @@ import {
   formatCourseDate,
   formatCoursePrice,
   getCourseLessonCount,
+  getCourseSectionCount,
 } from "@/lib/course-utils";
 import type { AdminCourse } from "@/redux/types/course";
 
@@ -49,7 +50,7 @@ const AdminRecentCourses: FC<AdminRecentCoursesProps> = ({ courses }) => {
             <div className="min-w-0">
               <p className="truncate text-sm font-medium">{course.name}</p>
               <p className="mt-0.5 text-[12px] text-muted">
-                {getCourseLessonCount(course)} lessons · Updated{" "}
+                {getCourseSectionCount(course)} sections · {getCourseLessonCount(course)} videos · Updated{" "}
                 {formatCourseDate(course.updatedAt ?? course.createdAt)}
               </p>
             </div>

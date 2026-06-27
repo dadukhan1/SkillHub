@@ -10,6 +10,7 @@ import {
   formatCourseDate,
   formatCoursePrice,
   getCourseLessonCount,
+  getCourseSectionCount,
 } from "@/lib/course-utils";
 import { getErrorMessage } from "@/redux/utils/getErrorMessage";
 import { useDeleteCourseMutation } from "@/redux/features/courseApiSlice";
@@ -81,7 +82,7 @@ const AdminCoursesTable: FC<AdminCoursesTableProps> = ({ courses }) => {
                     <div className="min-w-0">
                       <p className="truncate font-medium text-foreground">{course.name}</p>
                       <p className="mt-0.5 truncate text-[12px] text-muted">
-                        {getCourseLessonCount(course)} lessons · {course.tags}
+                        {getCourseSectionCount(course)} sections · {getCourseLessonCount(course)} videos · {course.tags}
                       </p>
                     </div>
                   </div>
@@ -136,7 +137,7 @@ const AdminCoursesTable: FC<AdminCoursesTableProps> = ({ courses }) => {
                   <div className="min-w-0">
                     <p className="font-medium text-foreground">{course.name}</p>
                     <p className="mt-1 text-[12px] text-muted">
-                      {getCourseLessonCount(course)} lessons · {course.tags}
+                      {getCourseSectionCount(course)} sections · {getCourseLessonCount(course)} videos · {course.tags}
                     </p>
                   </div>
                   <Badge variant="outline">{course.level}</Badge>

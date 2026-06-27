@@ -8,14 +8,18 @@ export const COURSE_LEVELS = [
 
 export const VIDEO_PLAYERS = ["youtube", "vimeo", "custom"] as const;
 
-export interface CourseLessonFormValues {
+export interface CourseVideoFormValues {
   key: string;
   title: string;
-  description: string;
   videoUrl: string;
-  videoSection: string;
   videoLength: string;
   videoPlayer: string;
+}
+
+export interface CourseSectionFormValues {
+  key: string;
+  title: string;
+  videos: CourseVideoFormValues[];
 }
 
 export interface CourseFormValues {
@@ -30,18 +34,24 @@ export interface CourseFormValues {
   thumbnailBase64: string;
   benefits: string[];
   preRequisites: string[];
-  courseData: CourseLessonFormValues[];
+  sections: CourseSectionFormValues[];
 }
 
-export function createEmptyLesson(): CourseLessonFormValues {
+export function createEmptyVideo(): CourseVideoFormValues {
   return {
     key: crypto.randomUUID(),
     title: "",
-    description: "",
     videoUrl: "",
-    videoSection: "Introduction",
     videoLength: "",
     videoPlayer: "youtube",
+  };
+}
+
+export function createEmptySection(): CourseSectionFormValues {
+  return {
+    key: crypto.randomUUID(),
+    title: "",
+    videos: [createEmptyVideo()],
   };
 }
 
@@ -58,8 +68,33 @@ export function createEmptyCourseForm(): CourseFormValues {
     thumbnailBase64: "",
     benefits: [""],
     preRequisites: [""],
-    courseData: [createEmptyLesson()],
+    sections: [createEmptySection()],
   };
+}
+
+function parseCourseDataToSections(
+  courseData: NonNullable<AdminCourse["courseData"]>,
+): CourseSectionFormValues[] {
+  const groups = new Map<string, NonNullable<AdminCourse["courseData"]>>();
+
+  for (const item of courseData) {
+    const groupKey = item.videoSection?.trim() || item.title?.trim() || "General";
+    const existing = groups.get(groupKey) ?? [];
+    existing.push(item);
+    groups.set(groupKey, existing);
+  }
+
+  return Array.from(groups.entries()).map(([groupKey, items]) => ({
+    key: crypto.randomUUID(),
+    title: groupKey,
+    videos: items.map((item) => ({
+      key: item._id ?? crypto.randomUUID(),
+      title: item.title ?? "",
+      videoUrl: item.videoUrl ?? "",
+      videoLength: item.videoLength != null ? String(item.videoLength) : "",
+      videoPlayer: item.videoPlayer ?? "youtube",
+    })),
+  }));
 }
 
 export function courseToFormValues(course: AdminCourse): CourseFormValues {
@@ -82,20 +117,30 @@ export function courseToFormValues(course: AdminCourse): CourseFormValues {
       course.preRequisites.some((item) => item.title)
         ? course.preRequisites.map((item) => item.title)
         : [""],
-    courseData:
+    sections:
       course.courseData?.length
-        ? course.courseData.map((lesson) => ({
-            key: lesson._id ?? crypto.randomUUID(),
-            title: lesson.title ?? "",
-            description: lesson.description ?? "",
-            videoUrl: lesson.videoUrl ?? "",
-            videoSection: lesson.videoSection ?? "Introduction",
-            videoLength:
-              lesson.videoLength != null ? String(lesson.videoLength) : "",
-            videoPlayer: lesson.videoPlayer ?? "youtube",
-          }))
-        : [createEmptyLesson()],
+        ? parseCourseDataToSections(course.courseData)
+        : [createEmptySection()],
   };
+}
+
+function sectionHasContent(section: CourseSectionFormValues): boolean {
+  if (section.title.trim()) {
+    return true;
+  }
+
+  return section.videos.some(
+    (video) =>
+      video.title.trim() ||
+      video.videoUrl.trim() ||
+      video.videoLength.trim(),
+  );
+}
+
+function videoHasContent(video: CourseVideoFormValues): boolean {
+  return Boolean(
+    video.title.trim() || video.videoUrl.trim() || video.videoLength.trim(),
+  );
 }
 
 export function validateCourseForm(
@@ -124,38 +169,32 @@ export function validateCourseForm(
     return "Course thumbnail is required.";
   }
 
-  const hasIncompleteLesson = values.courseData.some(
-    (lesson) =>
-      lesson.title.trim() ||
-      lesson.description.trim() ||
-      lesson.videoUrl.trim() ||
-      lesson.videoLength.trim(),
-  );
+  for (const section of values.sections) {
+    if (!sectionHasContent(section)) continue;
 
-  if (hasIncompleteLesson) {
-    for (const lesson of values.courseData) {
-      const hasAnyField =
-        lesson.title.trim() ||
-        lesson.description.trim() ||
-        lesson.videoUrl.trim() ||
-        lesson.videoSection.trim() ||
-        lesson.videoLength.trim();
+    const sectionName = section.title.trim() || "Untitled section";
 
-      if (!hasAnyField) continue;
+    if (!section.title.trim()) {
+      return `"${sectionName}" needs a section name.`;
+    }
 
-      const lessonName = lesson.title.trim() || "Untitled lesson";
+    const activeVideos = section.videos.filter(videoHasContent);
 
-      if (!lesson.title.trim()) {
-        return `"${lessonName}" needs a title.`;
+    if (activeVideos.length === 0) {
+      return `"${sectionName}" needs at least one video.`;
+    }
+
+    for (const video of activeVideos) {
+      const videoName = video.title.trim() || "Untitled video";
+
+      if (!video.title.trim()) {
+        return `"${videoName}" in "${sectionName}" needs a name.`;
       }
-      if (!lesson.description.trim()) {
-        return `"${lessonName}" needs a description.`;
+      if (!video.videoUrl.trim()) {
+        return `"${videoName}" in "${sectionName}" needs a video URL.`;
       }
-      if (!lesson.videoUrl.trim()) {
-        return `"${lessonName}" needs a video URL.`;
-      }
-      if (!lesson.videoLength.trim() || Number.isNaN(Number(lesson.videoLength))) {
-        return `"${lessonName}" needs a valid duration in minutes.`;
+      if (!video.videoLength.trim() || Number.isNaN(Number(video.videoLength))) {
+        return `"${videoName}" in "${sectionName}" needs a valid duration in minutes.`;
       }
     }
   }
@@ -164,6 +203,30 @@ export function validateCourseForm(
 }
 
 export function formValuesToPayload(values: CourseFormValues): CoursePayload {
+  const courseData = values.sections
+    .filter(sectionHasContent)
+    .flatMap((section) => {
+      const sectionTitle = section.title.trim();
+
+      return section.videos
+        .filter(
+          (video) =>
+            video.title.trim() &&
+            video.videoUrl.trim() &&
+            video.videoLength.trim(),
+        )
+        .map((video) => ({
+          title: video.title.trim(),
+          description: "",
+          videoUrl: video.videoUrl.trim(),
+          videoSection: sectionTitle,
+          videoLength: Number(video.videoLength),
+          videoPlayer: video.videoPlayer,
+          links: [],
+          suggestion: "",
+        }));
+    });
+
   const payload: CoursePayload = {
     name: values.name.trim(),
     description: values.description.trim(),
@@ -179,24 +242,7 @@ export function formValuesToPayload(values: CourseFormValues): CoursePayload {
       .map((title) => title.trim())
       .filter(Boolean)
       .map((title) => ({ title })),
-    courseData: values.courseData
-      .filter(
-        (lesson) =>
-          lesson.title.trim() &&
-          lesson.description.trim() &&
-          lesson.videoUrl.trim() &&
-          lesson.videoLength.trim(),
-      )
-      .map((lesson) => ({
-        title: lesson.title.trim(),
-        description: lesson.description.trim(),
-        videoUrl: lesson.videoUrl.trim(),
-        videoSection: lesson.videoSection.trim() || "General",
-        videoLength: Number(lesson.videoLength),
-        videoPlayer: lesson.videoPlayer,
-        links: [],
-        suggestion: "",
-      })),
+    courseData,
   };
 
   if (values.estimatedPrice.trim()) {
@@ -209,3 +255,7 @@ export function formValuesToPayload(values: CourseFormValues): CoursePayload {
 
   return payload;
 }
+
+// Backward-compatible aliases
+export type CourseLessonFormValues = CourseSectionFormValues;
+export const createEmptyLesson = createEmptySection;

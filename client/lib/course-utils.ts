@@ -21,6 +21,16 @@ export function getCourseLessonCount(course: AdminCourse): number {
   return course.courseData?.length ?? 0;
 }
 
+export function getCourseSectionCount(course: AdminCourse): number {
+  if (!course.courseData?.length) return 0;
+  const sections = new Set(
+    course.courseData.map(
+      (item) => item.videoSection?.trim() || item.title?.trim() || "General",
+    ),
+  );
+  return sections.size;
+}
+
 export function getCourseStats(courses: AdminCourse[]) {
   const totalCourses = courses.length;
   const totalEnrollments = courses.reduce(

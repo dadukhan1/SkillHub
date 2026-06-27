@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import CourseFormSection from "@/app/components/admin/course/CourseFormSection";
-import LessonEditor from "@/app/components/admin/course/LessonEditor";
+import SectionEditor from "@/app/components/admin/course/SectionEditor";
 import Button from "@/app/components/ui/Button";
 import Input from "@/app/components/ui/Input";
 import Select from "@/app/components/ui/Select";
@@ -14,9 +14,12 @@ import Textarea from "@/app/components/ui/Textarea";
 import { fileToBase64 } from "@/lib/files";
 import {
   COURSE_LEVELS,
-  createEmptyLesson,
+  createEmptySection,
+  createEmptyVideo,
   formValuesToPayload,
   type CourseFormValues,
+  type CourseSectionFormValues,
+  type CourseVideoFormValues,
   validateCourseForm,
 } from "@/lib/course-form";
 import {
@@ -36,9 +39,10 @@ const CourseForm: FC<CourseFormProps> = ({ mode, courseId, initialValues }) => {
   const router = useRouter();
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
   const [values, setValues] = useState(initialValues);
-  const [collapsedLessons, setCollapsedLessons] = useState<Record<string, boolean>>(
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>(
     {},
   );
+  const [collapsedVideos, setCollapsedVideos] = useState<Record<string, boolean>>({});
 
   const [createCourse, { isLoading: isCreating }] = useCreateCourseMutation();
   const [editCourse, { isLoading: isEditing }] = useEditCourseMutation();
@@ -85,54 +89,127 @@ const CourseForm: FC<CourseFormProps> = ({ mode, courseId, initialValues }) => {
     }));
   };
 
-  const updateLesson = (
-    index: number,
-    key: keyof CourseFormValues["courseData"][number],
-    value: string,
-  ) => {
+  const updateSection = (index: number, value: string) => {
     setValues((current) => ({
       ...current,
-      courseData: current.courseData.map((lesson, lessonIndex) =>
-        lessonIndex === index ? { ...lesson, [key]: value } : lesson,
+      sections: current.sections.map((section, sectionIndex) =>
+        sectionIndex === index ? { ...section, title: value } : section,
       ),
     }));
   };
 
-  const addLesson = () => {
-    const lesson = createEmptyLesson();
+  const updateVideo = (
+    sectionIndex: number,
+    videoIndex: number,
+    key: keyof CourseVideoFormValues,
+    value: string,
+  ) => {
     setValues((current) => ({
       ...current,
-      courseData: [...current.courseData, lesson],
+      sections: current.sections.map((section, sIndex) =>
+        sIndex === sectionIndex
+          ? {
+              ...section,
+              videos: section.videos.map((video, vIndex) =>
+                vIndex === videoIndex ? { ...video, [key]: value } : video,
+              ),
+            }
+          : section,
+      ),
     }));
-    setCollapsedLessons((current) => {
+  };
+
+  const addSection = () => {
+    const section = createEmptySection();
+    setValues((current) => ({
+      ...current,
+      sections: [...current.sections, section],
+    }));
+    setCollapsedSections((current) => {
       const next = { ...current };
-      delete next[lesson.key];
+      delete next[section.key];
       return next;
     });
   };
 
-  const removeLesson = (index: number) => {
-    const removedKey = values.courseData[index]?.key;
+  const removeSection = (index: number) => {
+    const removedSection = values.sections[index];
     setValues((current) => ({
       ...current,
-      courseData:
-        current.courseData.length === 1
-          ? [createEmptyLesson()]
-          : current.courseData.filter((_, lessonIndex) => lessonIndex !== index),
+      sections:
+        current.sections.length === 1
+          ? [createEmptySection()]
+          : current.sections.filter((_, sectionIndex) => sectionIndex !== index),
     }));
-    if (removedKey) {
-      setCollapsedLessons((current) => {
+    if (removedSection) {
+      setCollapsedSections((current) => {
         const next = { ...current };
-        delete next[removedKey];
+        delete next[removedSection.key];
+        return next;
+      });
+      setCollapsedVideos((current) => {
+        const next = { ...current };
+        for (const video of removedSection.videos) {
+          delete next[video.key];
+        }
         return next;
       });
     }
   };
 
-  const toggleLesson = (key: string) => {
-    setCollapsedLessons((current) => ({
+  const addVideo = (sectionIndex: number) => {
+    const video = createEmptyVideo();
+    setValues((current) => ({
       ...current,
-      [key]: !current[key],
+      sections: current.sections.map((section, index) =>
+        index === sectionIndex
+          ? { ...section, videos: [...section.videos, video] }
+          : section,
+      ),
+    }));
+    setCollapsedVideos((current) => {
+      const next = { ...current };
+      delete next[video.key];
+      return next;
+    });
+  };
+
+  const removeVideo = (sectionIndex: number, videoIndex: number) => {
+    const removedVideo = values.sections[sectionIndex]?.videos[videoIndex];
+    setValues((current) => ({
+      ...current,
+      sections: current.sections.map((section, index) =>
+        index === sectionIndex
+          ? {
+              ...section,
+              videos:
+                section.videos.length === 1
+                  ? [createEmptyVideo()]
+                  : section.videos.filter((_, vIndex) => vIndex !== videoIndex),
+            }
+          : section,
+      ),
+    }));
+    if (removedVideo) {
+      setCollapsedVideos((current) => {
+        const next = { ...current };
+        delete next[removedVideo.key];
+        return next;
+      });
+    }
+  };
+
+  const toggleSection = (key: string) => {
+    setCollapsedSections((current) => ({
+      ...current,
+      [key]: !(current[key] ?? true),
+    }));
+  };
+
+  const toggleVideo = (key: string) => {
+    setCollapsedVideos((current) => ({
+      ...current,
+      [key]: !(current[key] ?? true),
     }));
   };
 
@@ -358,23 +435,30 @@ const CourseForm: FC<CourseFormProps> = ({ mode, courseId, initialValues }) => {
       <CourseFormSection
         label="Curriculum"
         title="Course content"
-        description="Add lessons with video details. Name each lesson and collapse sections to keep your curriculum organized."
+        description="Organize your course into named sections. Add multiple videos to each section and collapse them to stay focused."
       >
         <div className="space-y-3">
-          {values.courseData.map((lesson, index) => (
-            <LessonEditor
-              key={lesson.key}
-              lesson={lesson}
-              isCollapsed={collapsedLessons[lesson.key] ?? false}
-              onToggle={() => toggleLesson(lesson.key)}
-              onUpdate={(key, value) => updateLesson(index, key, value)}
-              onRemove={() => removeLesson(index)}
+          {values.sections.map((section, sectionIndex) => (
+            <SectionEditor
+              key={section.key}
+              section={section}
+              isCollapsed={collapsedSections[section.key] ?? true}
+              collapsedVideos={collapsedVideos}
+              onToggleSection={() => toggleSection(section.key)}
+              onToggleVideo={toggleVideo}
+              onUpdateSection={(value) => updateSection(sectionIndex, value)}
+              onUpdateVideo={(videoIndex, key, value) =>
+                updateVideo(sectionIndex, videoIndex, key, value)
+              }
+              onAddVideo={() => addVideo(sectionIndex)}
+              onRemoveVideo={(videoIndex) => removeVideo(sectionIndex, videoIndex)}
+              onRemoveSection={() => removeSection(sectionIndex)}
             />
           ))}
         </div>
 
-        <Button type="button" variant="secondary" size="sm" onClick={addLesson}>
-          Add lesson
+        <Button type="button" variant="secondary" size="sm" onClick={addSection}>
+          Add section
         </Button>
       </CourseFormSection>
 
