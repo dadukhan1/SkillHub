@@ -68,17 +68,6 @@ const AdminUsersPage: FC = () => {
 
         <AdminUsersTable users={filteredUsers} />
       </div>
-
-      <div className="animate-fade-up-delay-3 mt-10 border-t border-border pt-8">
-        <p className="label mb-4">Trusted by teams at</p>
-        <div className="flex flex-wrap items-center gap-x-12 gap-y-4 text-[13px] font-medium text-muted-foreground">
-          {["Vercel", "Stripe", "Notion", "Linear", "Figma"].map((company) => (
-            <span key={company} className="transition-colors duration-200 hover:text-muted">
-              {company}
-            </span>
-          ))}
-        </div>
-      </div>
     </div>
   );
 };

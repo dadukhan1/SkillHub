@@ -70,24 +70,6 @@ const Hero: FC = () => {
             <HeroPreview />
           </div>
         </div>
-
-        <div className="animate-fade-up-delay-3 mt-16 lg:hidden">
-          <HeroPreview />
-        </div>
-
-        <div className="animate-fade-up-delay-3 mt-20 border-t border-border pt-12">
-          <p className="label mb-8 text-center lg:text-left">Trusted by teams at</p>
-          <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-4 lg:justify-start">
-            {trustedBy.map((company) => (
-              <span
-                key={company}
-                className="text-[13px] font-medium text-muted-foreground transition-colors duration-200 hover:text-muted"
-              >
-                {company}
-              </span>
-            ))}
-          </div>
-        </div>
       </div>
     </section>
   );
