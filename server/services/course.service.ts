@@ -7,5 +7,5 @@ export const createCourse = async (data: any) => {
 };
 
 export const getAllCoursesService = async () => {
-  return await CourseModel.find().sort({ createAt: -1 });
+  return await CourseModel.find().sort({ createdAt: -1 });
 };

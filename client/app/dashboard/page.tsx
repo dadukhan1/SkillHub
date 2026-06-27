@@ -1,78 +1,116 @@
+"use client";
+
+import { FC, useMemo } from "react";
 import Link from "next/link";
-import DashboardWelcome from "@/app/components/dashboard/DashboardWelcome";
-import AnalyticsWidget from "@/app/components/dashboard/AnalyticsWidget";
-import CourseTrackingCard from "@/app/components/dashboard/CourseTrackingCard";
+import AdminLoadingState from "@/app/components/admin/AdminLoadingState";
+import AdminPageHeader from "@/app/components/admin/AdminPageHeader";
+import AdminRecentCourses from "@/app/components/admin/AdminRecentCourses";
+import AdminStats from "@/app/components/admin/AdminStats";
 import Button from "@/app/components/ui/Button";
-import { dashboardCourses } from "@/lib/mock-data";
+import {
+  formatCoursePrice,
+  getCourseStats,
+} from "@/lib/course-utils";
+import { useAuth } from "@/redux/hooks";
+import { useGetAdminCoursesQuery } from "@/redux/features/courseApiSlice";
+import { getErrorMessage } from "@/redux/utils/getErrorMessage";
+import { getFirstName } from "@/lib/user";
 
-export default function DashboardPage() {
-  return (
-    <>
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <DashboardWelcome />
-        <Link href="#courses">
-          <Button variant="secondary" size="sm">
-            Explore courses
-          </Button>
-        </Link>
+const AdminDashboardPage: FC = () => {
+  const { user } = useAuth();
+  const { data, isLoading, isError, error } = useGetAdminCoursesQuery();
+
+  const courses = data?.courses ?? [];
+  const stats = useMemo(() => getCourseStats(courses), [courses]);
+  const firstName = user ? getFirstName(user.name) : "Admin";
+
+  if (isLoading) {
+    return <AdminLoadingState />;
+  }
+
+  if (isError) {
+    return (
+      <div className="rounded-[14px] border border-red-500/20 bg-red-500/5 px-6 py-10 text-center">
+        <p className="text-sm text-red-500">
+          {getErrorMessage(error, "Failed to load dashboard data.")}
+        </p>
       </div>
+    );
+  }
 
-      <AnalyticsWidget />
-
-      <section className="mt-10">
-        <div className="mb-5 flex items-center justify-between">
-          <h2 className="text-lg font-semibold tracking-tight">Continue learning</h2>
-          <Link href="/dashboard/courses" className="text-sm text-accent hover:text-accent-hover">
-            View all
+  return (
+    <div className="mx-auto max-w-6xl">
+      <AdminPageHeader
+        label="Admin dashboard"
+        title={
+          <>
+            Welcome back, {firstName}.
+            <br />
+            <span className="text-muted">Manage with clarity.</span>
+          </>
+        }
+        description="Your control center for SkillHub. Start with courses today — users, analytics, and settings modules are on the way."
+        actions={
+          <Link href="/dashboard/courses">
+            <Button size="sm">Manage courses</Button>
           </Link>
-        </div>
-        <div className="space-y-3">
-          {dashboardCourses.map((course) => (
-            <CourseTrackingCard key={course.id} course={course} />
+        }
+      />
+
+      <AdminStats
+        stats={[
+          { value: String(stats.totalCourses), label: "Total courses" },
+          { value: stats.totalEnrollments.toLocaleString(), label: "Total enrollments" },
+          {
+            value: stats.avgRating > 0 ? stats.avgRating.toFixed(1) : "—",
+            label: "Avg. rating",
+          },
+          {
+            value: formatCoursePrice(stats.totalRevenue),
+            label: "Catalog revenue",
+          },
+        ]}
+      />
+
+      <section className="animate-fade-up-delay-2 mt-10">
+        <AdminRecentCourses courses={courses} />
+      </section>
+
+      <section className="animate-fade-up-delay-3 mt-10 border-t border-border pt-10">
+        <p className="label mb-6">Platform modules</p>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            { label: "Courses", href: "/dashboard/courses", enabled: true },
+            { label: "Users", href: "/dashboard/users", enabled: false },
+            { label: "Analytics", href: "/dashboard/analytics", enabled: false },
+            { label: "Settings", href: "/dashboard/settings", enabled: false },
+          ].map((module) => (
+            <div
+              key={module.label}
+              className="rounded-[14px] border border-border bg-card p-5"
+            >
+              <p className="text-[15px] font-medium">{module.label}</p>
+              <p className="mt-1 text-[13px] text-muted">
+                {module.enabled ? "Available now" : "Coming soon"}
+              </p>
+              {module.enabled ? (
+                <Link
+                  href={module.href}
+                  className="mt-4 inline-block text-[13px] text-muted transition-colors hover:text-foreground"
+                >
+                  Open module →
+                </Link>
+              ) : (
+                <span className="mt-4 inline-block text-[13px] text-muted-foreground">
+                  In development
+                </span>
+              )}
+            </div>
           ))}
         </div>
       </section>
-
-      <section className="mt-10 grid gap-6 lg:grid-cols-2">
-        <div className="rounded-2xl border border-border bg-card p-6 shadow-soft">
-          <h2 className="text-lg font-semibold tracking-tight">Weekly activity</h2>
-          <p className="mt-1 text-sm text-muted">Hours spent learning this week</p>
-          <div className="mt-6 flex items-end justify-between gap-2">
-            {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day, i) => {
-              const heights = [40, 65, 45, 80, 55, 30, 70];
-              return (
-                <div key={day} className="flex flex-1 flex-col items-center gap-2">
-                  <div
-                    className="w-full max-w-8 rounded-md bg-accent/20 transition-all duration-300 hover:bg-accent/40"
-                    style={{ height: `${heights[i]}px` }}
-                  />
-                  <span className="text-[10px] text-muted">{day}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-border bg-card p-6 shadow-soft">
-          <h2 className="text-lg font-semibold tracking-tight">Upcoming</h2>
-          <p className="mt-1 text-sm text-muted">Your scheduled sessions</p>
-          <ul className="mt-5 space-y-3">
-            {[
-              { title: "React Patterns — Module 4", time: "Today, 2:00 PM" },
-              { title: "TypeScript Quiz", time: "Tomorrow, 10:00 AM" },
-              { title: "System Design Live Session", time: "Fri, 4:00 PM" },
-            ].map((item) => (
-              <li
-                key={item.title}
-                className="flex items-center justify-between rounded-xl border border-border bg-surface/50 px-4 py-3"
-              >
-                <span className="text-sm font-medium">{item.title}</span>
-                <span className="text-xs text-muted">{item.time}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-    </>
+    </div>
   );
-}
+};
+
+export default AdminDashboardPage;

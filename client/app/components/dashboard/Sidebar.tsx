@@ -1,66 +1,13 @@
 "use client";
 
-import { FC, useEffect, useState } from "react";
+import { FC } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { adminNavItems, isAdminNavActive } from "@/lib/admin-nav";
 import { useAuth } from "@/redux/hooks";
 import ThemeToggle from "../ThemeToggle";
 import UserProfileMenu from "../layout/UserProfileMenu";
-
-const navItems = [
-  {
-    label: "Overview",
-    href: "/dashboard",
-    icon: (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <rect width="7" height="9" x="3" y="3" rx="1" />
-        <rect width="7" height="5" x="14" y="3" rx="1" />
-        <rect width="7" height="9" x="14" y="12" rx="1" />
-        <rect width="7" height="5" x="3" y="16" rx="1" />
-      </svg>
-    ),
-  },
-  {
-    label: "My Courses",
-    href: "/dashboard/courses",
-    icon: (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
-      </svg>
-    ),
-  },
-  {
-    label: "Paths",
-    href: "/dashboard/paths",
-    icon: (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M3 3v18h18" />
-        <path d="m7 16 4-8 4 4 6-8" />
-      </svg>
-    ),
-  },
-  {
-    label: "Certificates",
-    href: "/dashboard/certificates",
-    icon: (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="8" r="6" />
-        <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" />
-      </svg>
-    ),
-  },
-  {
-    label: "Settings",
-    href: "/dashboard/settings",
-    icon: (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="3" />
-        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
-      </svg>
-    ),
-  },
-];
 
 interface SidebarProps {
   mobileOpen?: boolean;
@@ -108,9 +55,32 @@ const Sidebar: FC<SidebarProps> = ({ mobileOpen = false, onNavigate }) => {
         </button>
       </div>
 
+      <div className="border-b border-border px-5 py-3">
+        <p className="label">Admin</p>
+      </div>
+
       <nav className="flex-1 space-y-0.5 overflow-y-auto overscroll-contain p-3">
-        {navItems.map((item) => {
-          const isActive = pathname === item.href;
+        {adminNavItems.map((item) => {
+          const isActive = isAdminNavActive(pathname ?? "", item.href);
+
+          if (!item.enabled) {
+            return (
+              <div
+                key={item.href}
+                className="flex items-center justify-between gap-2 rounded-[10px] px-3 py-2.5 text-[13px] text-muted-foreground"
+                aria-disabled="true"
+              >
+                <span className="flex items-center gap-2.5">
+                  {item.icon}
+                  {item.label}
+                </span>
+                <span className="rounded-full bg-surface px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide">
+                  Soon
+                </span>
+              </div>
+            );
+          }
+
           return (
             <Link
               key={item.href}

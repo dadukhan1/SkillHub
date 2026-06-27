@@ -15,7 +15,11 @@ export const uploadCourse = catchAsyncErrors(
   async (req: Request, res: Response, next: NextFunction) => {
     const data = req.body;
     const thumbnail = data.thumbnail;
-    if (thumbnail) {
+    if (
+      thumbnail &&
+      typeof thumbnail === "string" &&
+      thumbnail.startsWith("data:")
+    ) {
       const myCloud = await cloudinary.uploader.upload(thumbnail, {
         folder: "courses",
       });
@@ -46,7 +50,15 @@ export const editCourse = catchAsyncErrors(
 
     const course = await CourseModel.findById(courseId);
 
-    if (thumbnail) {
+    if (!course) {
+      return next(new ErrorHandler("Course not found", 404));
+    }
+
+    if (
+      thumbnail &&
+      typeof thumbnail === "string" &&
+      thumbnail.startsWith("data:")
+    ) {
       if (
         course?.thumbnail &&
         typeof course.thumbnail === "object" &&
@@ -376,6 +388,23 @@ export const addReviewReply = catchAsyncErrors(
   },
 );
 
+// Get single course for admin --- full data
+export const getCourseForAdmin = catchAsyncErrors(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const courseId = req.params.id as string;
+    const course = await CourseModel.findById(courseId);
+
+    if (!course) {
+      return next(new ErrorHandler("Course not found", 404));
+    }
+
+    return res.status(200).json({
+      success: true,
+      course,
+    });
+  },
+);
+
 // Get all courses ------ admin only
 export const getAllCoursesForAdmin = catchAsyncErrors(
   async (req: Request, res: Response) => {
@@ -393,15 +422,24 @@ export const deleteCourse = catchAsyncErrors(
   async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.params;
 
-    const course = CourseModel.findById(id);
+    const course = await CourseModel.findById(id);
 
     if (!course) {
       return next(new ErrorHandler("Course not found", 404));
     }
 
-    await CourseModel.deleteOne({ id });
+    if (
+      course.thumbnail &&
+      typeof course.thumbnail === "object" &&
+      "public_id" in course.thumbnail
+    ) {
+      await cloudinary.uploader.destroy((course.thumbnail as any).public_id);
+    }
+
+    await CourseModel.deleteOne({ _id: id });
 
     await redis.del(id.toString());
+    await redis.del("allCourses");
 
     return res.status(200).json({
       success: true,
