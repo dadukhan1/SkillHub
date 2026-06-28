@@ -13,6 +13,12 @@ import notificationRouter from "./routes/notification.route";
 import analyticsRouter from "./routes/analytics.route";
 import layoutRouter from "./routes/layout.route";
 
+// Stripe webhook needs raw body — must be before express.json()
+app.use(
+  "/api/v1/payment/webhook",
+  express.raw({ type: "application/json" }),
+);
+
 app.use(express.json({ limit: "50mb" }));
 app.use(cookieParser());
 

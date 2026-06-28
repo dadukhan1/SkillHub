@@ -82,6 +82,7 @@ const AdminDashboardPage: FC = () => {
           {[
             { label: "Courses", href: "/dashboard/courses", enabled: true },
             { label: "Users", href: "/dashboard/users", enabled: true },
+            { label: "Orders", href: "/dashboard/orders", enabled: true },
             { label: "Categories", href: "/dashboard/categories", enabled: true },
             { label: "FAQ", href: "/dashboard/faq", enabled: true },
             { label: "Analytics", href: "/dashboard/analytics", enabled: true },

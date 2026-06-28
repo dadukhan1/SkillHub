@@ -3,11 +3,12 @@
 import { FC, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Button from "@/app/components/ui/Button";
 import ThemeToggle from "@/app/components/ThemeToggle";
 import UserProfileMenu from "@/app/components/layout/UserProfileMenu";
 import CourseVideoPlayer from "@/app/components/course-player/CourseVideoPlayer";
+import CourseReviews from "@/app/components/course-player/CourseReviews";
 import { userHasCourseAccess } from "@/lib/course-access";
 import {
   formatVideoDuration,
@@ -16,15 +17,18 @@ import {
 import { formatCoursePrice } from "@/lib/course-utils";
 import { useAuth } from "@/redux/hooks";
 import { useGetCourseQuery } from "@/redux/features/courseApiSlice";
+import { useCreateCheckoutSessionMutation } from "@/redux/features/ordersApiSlice";
 import { getErrorMessage } from "@/redux/utils/getErrorMessage";
+import toast from "react-hot-toast";
 
 const CourseDetailPage: FC = () => {
   const params = useParams<{ id: string }>();
-  const router = useRouter();
   const courseId = params?.id ?? "";
   const { user } = useAuth();
   const [showVideo, setShowVideo] = useState(false);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+  const [createCheckoutSession, { isLoading: isPaymentLoading }] =
+    useCreateCheckoutSessionMutation();
 
   const { data, isLoading, isError, error } = useGetCourseQuery(courseId, {
     skip: !courseId,
@@ -53,6 +57,19 @@ const CourseDetailPage: FC = () => {
       ...prev,
       [key]: !prev[key],
     }));
+  };
+
+  const handleEnroll = async () => {
+    if (!course || course.price <= 0) return;
+
+    try {
+      const res = await createCheckoutSession({ courseId }).unwrap();
+      if (res.url) {
+        window.location.href = res.url;
+      }
+    } catch (err) {
+      toast.error(getErrorMessage(err, "Failed to start checkout."));
+    }
   };
 
   if (isLoading) {
@@ -170,7 +187,9 @@ const CourseDetailPage: FC = () => {
                       })}
                     </div>
                   </div>
-                  <p className="mt-1 text-[13px] text-muted">Rating</p>
+                  <p className="mt-1 text-[13px] text-muted">
+                    Rating {course.reviews && course.reviews.length > 0 ? `(${course.reviews.length} reviews)` : ""}
+                  </p>
                 </div>
               </div>
 
@@ -180,8 +199,12 @@ const CourseDetailPage: FC = () => {
                     <Button size="lg">Start learning</Button>
                   </Link>
                 ) : user ? (
-                  <Button size="lg" onClick={() => router.push("/#courses")}>
-                    Enroll to start
+                  <Button
+                    size="lg"
+                    onClick={handleEnroll}
+                    disabled={isPaymentLoading || course.price <= 0}
+                  >
+                    {isPaymentLoading ? "Preparing checkout..." : "Enroll to start"}
                   </Button>
                 ) : (
                   <Link href={`/signin?redirect=/courses/${courseId}`}>
@@ -306,6 +329,8 @@ const CourseDetailPage: FC = () => {
               </div>
             </section>
           )}
+
+          <CourseReviews courseId={courseId} hideForm={true} />
         </div>
       </main>
     </div>

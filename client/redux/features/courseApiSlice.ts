@@ -1,4 +1,6 @@
 import type {
+  AddReviewPayload,
+  AddReviewResponse,
   AdminCourse,
   CoursePayload,
   CreateCourseResponse,
@@ -97,6 +99,19 @@ export const courseApiSlice = apiSlice.injectEndpoints({
         { type: "AdminCourse", id: "LIST" },
       ],
     }),
+    addReview: builder.mutation<
+      AddReviewResponse,
+      { id: string; body: AddReviewPayload }
+    >({
+      query: ({ id, body }) => ({
+        url: `/add-review/${id}`,
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: "Course", id },
+      ],
+    }),
   }),
 });
 
@@ -110,4 +125,5 @@ export const {
   useCreateCourseMutation,
   useEditCourseMutation,
   useDeleteCourseMutation,
+  useAddReviewMutation,
 } = courseApiSlice;

@@ -8,84 +8,111 @@ import { getAllOrdersService, newOrder } from "../services/order.service";
 import CourseModel from "../models/course.model";
 import { sendMail } from "../utils/sendMail";
 import NotificationModel from "../models/notification.model";
+import Stripe from "stripe";
+import { redis } from "../utils/redis";
 
-export const createOrder = catchAsyncErrors(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const { courseId, paymentInfo } = req.body;
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
-    const user = await userModel.findById(req.user?._id?.toString());
+// Stripe webhook — called by Stripe directly after successful payment
+export const stripeWebhook = async (req: Request, res: Response) => {
+  const sig = req.headers["stripe-signature"] as string;
 
-    if (!user) {
-      return next(new ErrorHandler("User not found", 404));
+  let event: Stripe.Event;
+
+  try {
+    event = stripe.webhooks.constructEvent(
+      req.body,
+      sig,
+      process.env.STRIPE_WEBHOOK_SECRET as string,
+    );
+  } catch (err: any) {
+    console.error("Webhook signature verification failed:", err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  if (event.type === "checkout.session.completed") {
+    const session = event.data.object as Stripe.Checkout.Session;
+
+    const courseId = session.metadata?.courseId;
+    const userId = session.metadata?.userId;
+
+    if (!courseId || !userId) {
+      console.error("Webhook: missing metadata", { courseId, userId });
+      return res.status(400).send("Missing metadata");
     }
 
-    const courseExistsInUser = user.courses.some(
-      (course) => course.courseId === courseId,
-    );
+    try {
+      const user = await userModel.findById(userId);
+      if (!user) {
+        console.error("Webhook: user not found", userId);
+        return res.status(404).send("User not found");
+      }
 
-    if (courseExistsInUser) {
-      return next(
-        new ErrorHandler("You have already purchased this course", 400),
+      const course = await CourseModel.findById(courseId);
+      if (!course) {
+        console.error("Webhook: course not found", courseId);
+        return res.status(404).send("Course not found");
+      }
+
+      // Idempotency: skip if user already has the course
+      const alreadyOwned = user.courses.some(
+        (c) => c.courseId === courseId,
       );
+      if (!alreadyOwned) {
+        await userModel.updateOne(
+          { _id: userId },
+          { $push: { courses: { courseId } } },
+        );
+
+        await CourseModel.findByIdAndUpdate(courseId, {
+          $inc: { purchased: 1 },
+        });
+
+        await newOrder({ courseId, userId });
+
+        await NotificationModel.create({
+          user: userId,
+          title: "New Order",
+          message: `You have a new order for the course: ${course.name}`,
+        });
+
+        const mailData = {
+          order: {
+            _id: course._id.toString(),
+            name: course.name,
+            price: course.price,
+            date: new Date().toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            }),
+          },
+        };
+
+        await sendMail({
+          email: user.email,
+          subject: "Order Confirmation",
+          template: "order-confirmation.ejs",
+          data: mailData,
+        });
+
+        const updatedUser = await userModel.findById(userId);
+        await redis.set(
+          userId,
+          JSON.stringify(updatedUser),
+          "EX",
+          604800,
+        );
+      }
+    } catch (err) {
+      console.error("Webhook: failed to process order", err);
+      return res.status(500).send("Internal error processing order");
     }
+  }
 
-    const course = await CourseModel.findById(courseId);
-    if (!course) {
-      return next(new ErrorHandler("Course not found", 404));
-    }
-
-    const data: any = {
-      courseId: course._id?.toString(),
-      userId: user._id?.toString(),
-    };
-
-    const mailData = {
-      order: {
-        _id: course._id.toString(),
-        name: course.name,
-        price: course.price,
-        date: new Date().toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        }),
-      },
-    };
-
-    const updated = await userModel.updateOne(
-      { _id: user._id, "courses.courseId": { $ne: courseId } },
-      { $push: { courses: { courseId } } },
-    );
-
-    if (updated.modifiedCount === 0) {
-      return next(new ErrorHandler("Already purchased", 400));
-    }
-
-    await CourseModel.findByIdAndUpdate(courseId, {
-      $inc: { purchased: 1 },
-    });
-
-    await newOrder(data);
-
-    await NotificationModel.create({
-      user: user._id?.toString(),
-      title: "New Order",
-      message: `You have a new order for the course: ${course.name}`,
-    });
-
-    await sendMail({
-      email: user.email,
-      subject: "Order Confirmation",
-      template: "order-confirmation.ejs",
-      data: mailData,
-    });
-
-    return res.status(200).json({
-      success: true,
-      order: course,
-    });
-  },
-);
+  // Always return 200 so Stripe doesn't retry unnecessarily
+  return res.status(200).json({ received: true });
+};
 
 // Get all orders ------ admin only
 export const getAllOrders = catchAsyncErrors(
@@ -95,6 +122,77 @@ export const getAllOrders = catchAsyncErrors(
     return res.status(200).json({
       success: true,
       orders,
+    });
+  },
+);
+
+export const createCheckoutSession = catchAsyncErrors(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { courseId } = req.body;
+    const userId = req.user?._id?.toString();
+
+    if (!courseId) {
+      return next(new ErrorHandler("Course ID is required", 400));
+    }
+
+    const course = await CourseModel.findById(courseId);
+    if (!course) {
+      return next(new ErrorHandler("Course not found", 404));
+    }
+
+    if (course.price <= 0) {
+      return next(new ErrorHandler("This course is free", 400));
+    }
+
+    const user = await userModel.findById(userId);
+    if (!user) {
+      return next(new ErrorHandler("User not found", 404));
+    }
+
+    const alreadyOwned = user.courses.some(
+      (entry) => entry.courseId === courseId,
+    );
+    if (alreadyOwned) {
+      return next(
+        new ErrorHandler("You have already purchased this course", 400),
+      );
+    }
+
+    const origin = (process.env.ORIGIN ?? "http://localhost:3000").replace(
+      /\/$/,
+      "",
+    );
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      line_items: [
+        {
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: course.name,
+              description: course.description?.slice(0, 200),
+            },
+            unit_amount: Math.round(course.price * 100),
+          },
+          quantity: 1,
+        },
+      ],
+      metadata: {
+        courseId: course._id?.toString() ?? courseId,
+        userId: userId ?? "",
+      },
+      success_url: `${origin}/courses/${courseId}/payment-success`,
+      cancel_url: `${origin}/courses/${courseId}`,
+    });
+
+    if (!session.url) {
+      return next(new ErrorHandler("Failed to create checkout session", 500));
+    }
+
+    return res.status(200).json({
+      success: true,
+      url: session.url,
     });
   },
 );

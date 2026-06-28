@@ -3,6 +3,31 @@ export interface CourseThumbnail {
   url?: string;
 }
 
+export interface CourseReview {
+  user: {
+    _id: string;
+    name: string;
+    avatar?: {
+      url: string;
+    };
+  };
+  rating: number;
+  comment: string;
+  commentReplies?: any[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface AddReviewPayload {
+  review: string;
+  rating: number;
+}
+
+export interface AddReviewResponse {
+  success: boolean;
+  course: PublicCourse; // or AdminCourse
+}
+
 export interface CourseLink {
   title: string;
   url: string;
@@ -35,6 +60,7 @@ export interface AdminCourse {
   ratings?: number;
   purchased?: number;
   courseData?: CourseLesson[];
+  reviews?: CourseReview[];
   createdAt?: string;
   updatedAt?: string;
 }
@@ -106,6 +132,7 @@ export interface PublicCourse {
     videoSection?: string;
     videoLength?: number;
   }>;
+  reviews?: CourseReview[];
 }
 
 export interface GetPublicCourseResponse {

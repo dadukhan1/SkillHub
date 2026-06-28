@@ -316,7 +316,7 @@ export const addReview = catchAsyncErrors(
     const courseId = req.params.id;
 
     const courseExists = userCoursesList?.find((course: any) =>
-      course._id.equals(courseId),
+      course.courseId?.toString() === courseId || course._id?.toString() === courseId,
     );
 
     if (!courseExists) {
@@ -324,6 +324,14 @@ export const addReview = catchAsyncErrors(
     }
 
     const course = await CourseModel.findById(courseId);
+
+    const isReviewExists = course?.reviews?.find(
+      (rev: any) => rev.user._id.toString() === req.user?._id.toString()
+    );
+
+    if (isReviewExists) {
+      return next(new ErrorHandler("You have already reviewed this course", 400));
+    }
 
     const reviewData = {
       user: req.user,
@@ -343,6 +351,9 @@ export const addReview = catchAsyncErrors(
     }
 
     await course?.save();
+
+    await redis.del(courseId);
+    await redis.del("allCourses");
 
     // Create notification
     await NotificationModel.create({

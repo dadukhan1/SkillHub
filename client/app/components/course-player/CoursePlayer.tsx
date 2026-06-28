@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import CoursePlayerShell from "@/app/components/course-player/CoursePlayerShell";
 import CoursePlayerSidebar from "@/app/components/course-player/CoursePlayerSidebar";
 import CourseVideoPlayer from "@/app/components/course-player/CourseVideoPlayer";
+import CourseReviews from "@/app/components/course-player/CourseReviews";
 import Button from "@/app/components/ui/Button";
 import {
   findVideoInCurriculum,
@@ -203,6 +204,8 @@ const CoursePlayer: FC<CoursePlayerProps> = ({ courseId }) => {
                 Next video
               </Button>
             </div>
+
+            <CourseReviews courseId={courseId} hideList={true} />
           </div>
         </main>
       </div>
