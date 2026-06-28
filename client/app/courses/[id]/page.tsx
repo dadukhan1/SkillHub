@@ -181,7 +181,7 @@ const CourseDetailPage: FC = () => {
                 {course.benefits && course.benefits.length > 0 && (
                   <div className='rounded-[16px] bg-card p-6 border border-border shadow-sm'>
                     <h3 className='text-lg font-bold mb-4'>
-                      What you'll learn
+                      What you will learn
                     </h3>
                     <ul className='space-y-3'>
                       {course.benefits.map((b, i) => (
