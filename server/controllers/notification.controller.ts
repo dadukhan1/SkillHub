@@ -11,7 +11,7 @@ const adminAudienceFilter = {
 };
 
 const getAdminNotifications = () =>
-  NotificationModel.find(adminAudienceFilter).sort({ createdAt: -1 });
+  NotificationModel.find({ ...adminAudienceFilter } as any).sort({ createdAt: -1 });
 
 export const getAllNotifications = catchAsyncErrors(
   async (req: Request, res: Response) => {
@@ -29,7 +29,7 @@ export const updateNotification = catchAsyncErrors(
     const { id } = req.params;
 
     const notification = await NotificationModel.findOneAndUpdate(
-      { _id: id, ...adminAudienceFilter },
+      { _id: id, ...adminAudienceFilter } as any,
       { status: "read" },
       { new: true },
     );
@@ -50,7 +50,7 @@ export const updateNotification = catchAsyncErrors(
 export const markAllNotificationsRead = catchAsyncErrors(
   async (req: Request, res: Response) => {
     await NotificationModel.updateMany(
-      { ...adminAudienceFilter, status: "unread" },
+      { ...adminAudienceFilter, status: "unread" } as any,
       { status: "read" },
     );
 
