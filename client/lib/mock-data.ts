@@ -46,7 +46,7 @@ export const featuredCourses: Course[] = [
     students: 12400,
     price: 89,
     originalPrice: 129,
-    thumbnail: { from: "#5e6ad2", to: "#8b5cf6" },
+    thumbnail: { tone: "#5e6ad2" },
     level: "Advanced",
   },
   {

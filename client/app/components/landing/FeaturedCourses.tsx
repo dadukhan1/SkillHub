@@ -30,7 +30,7 @@ const FeaturedCourses: FC = () => {
   const { data: coursesData, isLoading } = useGetPublicCoursesQuery();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const activeCategory = searchParams.get("category") ?? "";
+  const activeCategory = searchParams?.get("category") ?? "";
 
   const apiCategories = categoriesData?.layout?.categories ?? [];
   const allCourses = coursesData?.courses ?? [];
@@ -47,13 +47,14 @@ const FeaturedCourses: FC = () => {
   }, [allCourses, activeCategory]);
 
   const setCategory = (title: string) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (params.get("category") === title) {
+    const params = new URLSearchParams(searchParams?.toString() ?? "");
+    if (!params) return;
+    if (params?.get("category") === title) {
       params.delete("category");
     } else {
       params.set("category", title);
     }
-    const qs = params.toString();
+    const qs = params?.toString() ?? "";
     router.push(qs ? `/?${qs}` : `/`, { scroll: false });
   };
 

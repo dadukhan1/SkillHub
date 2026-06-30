@@ -17,7 +17,6 @@ import {
 } from "@/lib/course-curriculum";
 import { useGetCourseContentQuery } from "@/redux/features/courseApiSlice";
 import { getErrorMessage } from "@/redux/utils/getErrorMessage";
-import type { CourseLesson } from "@/redux/types/course";
 
 interface CoursePlayerProps {
   courseId: string;
@@ -43,7 +42,7 @@ const CoursePlayer: FC<CoursePlayerProps> = ({ courseId }) => {
   useEffect(() => {
     if (!sections.length) return;
 
-    const requestedVideo = searchParams.get("video");
+    const requestedVideo = searchParams?.get("video") ?? null;
     const match = findVideoInCurriculum(sections, requestedVideo);
     const defaultVideo = getDefaultVideoSelection(sections);
     setActiveVideoId(match ? requestedVideo : defaultVideo);

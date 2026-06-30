@@ -52,7 +52,7 @@ const Categories: FC = () => {
   const { data, isLoading } = useGetLayoutByTypeQuery("Categories");
   const router = useRouter();
   const searchParams = useSearchParams();
-  const activeCategory = searchParams.get("category") ?? "";
+  const activeCategory = searchParams?.get("category") ?? "";
 
   const apiCategories = data?.layout?.categories ?? [];
 
@@ -75,14 +75,15 @@ const Categories: FC = () => {
   if (apiCategories.length === 0) return null;
 
   const handleSelect = (title: string) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (params.get("category") === title) {
+    const params = new URLSearchParams(searchParams?.toString() ?? "");
+    if (!params) return;
+    if (params?.get("category") === title) {
       params.delete("category");
     } else {
       params.set("category", title);
     }
     // Navigate to courses section on homepage
-    router.push(`/#courses?${params.toString()}`, { scroll: false });
+    router.push(`/#courses?${params?.toString() ?? ""}`, { scroll: false });
     setTimeout(() => {
       document.getElementById("courses")?.scrollIntoView({ behavior: "smooth" });
     }, 80);

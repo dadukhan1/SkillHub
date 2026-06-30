@@ -27,7 +27,7 @@ const maskEmail = (email: string) => {
 const VerifyOtpForm: FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const email = searchParams.get("email") ?? "";
+  const email = searchParams?.get("email") ?? "";
 
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");

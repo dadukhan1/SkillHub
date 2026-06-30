@@ -7,7 +7,7 @@ import type {
   CourseQuestionReply,
 } from "../types/course";
 import type { RootState } from "../store";
-import { apiSlice } from "./apiSlice";
+import { courseApiSlice as apiSlice } from "./courseApiSlice";
 
 type AddQuestionArgs = {
   courseId: string;

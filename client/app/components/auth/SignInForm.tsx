@@ -18,8 +18,8 @@ const SignInForm: FC = () => {
   const [login, { isLoading }] = useLoginMutation();
 
   useEffect(() => {
-    const error = searchParams.get("error");
-    if (!error) return;
+    const error = searchParams?.get("error");
+    if (!error || !searchParams) return;
 
     const messages: Record<string, string> = {
       OAuthSignin: "Could not start social sign-in. Check your OAuth app settings.",
