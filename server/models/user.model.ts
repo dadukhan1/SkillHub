@@ -21,6 +21,8 @@ export interface IUser extends Document {
   comparePassword: (enteredPassword: string) => Promise<boolean>;
   signAccessToken: () => string;
   signRefreshToken: () => string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const userSchema: Schema<IUser> = new mongoose.Schema(
