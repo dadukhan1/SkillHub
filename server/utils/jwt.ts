@@ -30,16 +30,16 @@ export const accessTokenOptions: ITokenOptions = {
   expires: new Date(Date.now() + accessTokenExpires * 1000),
   maxAge: accessTokenExpires * 1000,
   httpOnly: true,
-  sameSite: "lax",
-  secure: process.env.NODE_ENV === "production",
+  sameSite: "none",
+  secure: true,
 };
 
 export const refreshTokenOptions: ITokenOptions = {
   expires: new Date(Date.now() + refreshTokenExpires * 1000),
   maxAge: refreshTokenExpires * 1000,
-  httpOnly: true,
-  sameSite: "lax",
-  secure: process.env.NODE_ENV === "production",
+  httpOnly: true, 
+  sameSite: "none",
+  secure: true,
 };
 
 export const sendToken = async (user: IUser, statusCode: number, res: Response) => {
