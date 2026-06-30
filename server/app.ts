@@ -1,7 +1,7 @@
 /** @format */
 
 import express, { NextFunction, Request, Response } from "express";
-export const app = express();
+const app = express();
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import "dotenv/config";
@@ -55,3 +55,5 @@ app.get("/*splat", (req: Request, res: Response, next: NextFunction) => {
 });
 
 app.use(errorHandlerMiddleware);
+
+export default app;
