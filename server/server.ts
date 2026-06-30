@@ -1,6 +1,6 @@
 /** @format */
 
-import { app } from "./app";
+import app from "./app";
 import "dotenv/config";
 import connectDB from "./utils/db";
 
