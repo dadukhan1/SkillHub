@@ -23,8 +23,6 @@ const CourseVideoPlayer: FC<Props> = ({ videoId, title }) => {
         // The backend returns { success: true, videoUrl: { otp: "...", playbackInfo: "..." } }
         if (response?.videoUrl) {
           setVideoData(response.videoUrl);
-        } else if (response?.otp) {
-          setVideoData(response); // In case backend returns it directly
         }
       } catch (err) {
         console.error("Failed to generate video URL:", err);
