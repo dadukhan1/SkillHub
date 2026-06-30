@@ -389,7 +389,7 @@ export const addReview = catchAsyncErrors(
 
     await course?.save();
 
-    await redis.del(courseId);
+    await redis.del(courseId as string);
     await redis.del("allCourses");
 
     // Create notification
