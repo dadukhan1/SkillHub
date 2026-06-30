@@ -7,12 +7,12 @@ const dbURL: string = process.env.DB_URI || "";
 
 const connectDB = async () => {
   try {
-    await mongoose.connect(dbURL).then((data: any) => {
-      console.log(`Database connected with ${data.connection.host}`);
+    const data = await mongoose.connect(dbURL, {
+      serverSelectionTimeoutMS: 5000,
     });
+    console.log(`Database connected with ${data.connection.host}`);
   } catch (error: any) {
-    console.log(error.message);
-    setTimeout(connectDB, 5000);
+    console.log("DB connection error:", error.message);
   }
 };
 
