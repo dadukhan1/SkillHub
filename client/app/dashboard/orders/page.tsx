@@ -7,9 +7,16 @@ import AdminPageHeader from "@/app/components/admin/AdminPageHeader";
 import AdminSearchInput from "@/app/components/admin/AdminSearchInput";
 import { useGetAllOrdersQuery } from "@/redux/features/ordersApiSlice";
 import { getErrorMessage } from "@/redux/utils/getErrorMessage";
+import { useAuth } from "@/redux/hooks";
+import { isAdmin } from "@/lib/user";
 
 const AdminOrdersPage: FC = () => {
-  const { data, isLoading, isError, error } = useGetAllOrdersQuery();
+  const { user } = useAuth();
+  const isAdminUser = user ? isAdmin(user.role) : false;
+  const { data, isLoading, isError, error } = useGetAllOrdersQuery(undefined, {
+    skip: !isAdminUser,
+    pollingInterval: 30000,
+  });
   const [search, setSearch] = useState("");
 
   const orders = (data?.orders ?? []) as {
