@@ -33,6 +33,40 @@ export interface CourseLink {
   url: string;
 }
 
+export interface CourseQuestionReply {
+  _id: string;
+  user: {
+    name: string;
+    email: string;
+  };
+  answer: string;
+  createdAt?: string;
+}
+
+export interface CourseQuestion {
+  _id: string;
+  user: {
+    name: string;
+    email: string;
+  };
+  question: string;
+  questionReplies?: CourseQuestionReply[];
+  createdAt?: string;
+}
+
+export interface AddQuestionResponse {
+  success: boolean;
+  contentId: string;
+  question: CourseQuestion;
+}
+
+export interface AddAnswerResponse {
+  success: boolean;
+  contentId: string;
+  questionId: string;
+  answer: CourseQuestionReply;
+}
+
 export interface CourseLesson {
   _id?: string;
   title: string;
@@ -43,6 +77,7 @@ export interface CourseLesson {
   videoPlayer: string;
   links?: CourseLink[];
   suggestion?: string;
+  questions?: CourseQuestion[];
 }
 
 export interface AdminCourse {

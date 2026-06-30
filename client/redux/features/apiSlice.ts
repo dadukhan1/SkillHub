@@ -24,7 +24,7 @@ import { baseQueryWithReauth } from "../utils/baseQueryWithReauth";
 export const apiSlice = createApi({
   reducerPath: "api",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["User", "AdminCourse", "Course", "CourseContent", "Layout"],
+  tagTypes: ["User", "AdminCourse", "Course", "CourseContent", "Layout", "Notification"],
   endpoints: (builder) => ({
     register: builder.mutation<RegisterResponse, RegisterRequest>({
       query: (body) => ({

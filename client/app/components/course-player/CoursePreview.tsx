@@ -1,3 +1,5 @@
+/** @format */
+
 "use client";
 
 import { FC, useEffect, useMemo, useState } from "react";
@@ -45,9 +47,9 @@ const CoursePreview: FC<CoursePreviewProps> = ({ courseId }) => {
   );
 
   const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
-  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>(
-    {},
-  );
+  const [collapsedSections, setCollapsedSections] = useState<
+    Record<string, boolean>
+  >({});
 
   useEffect(() => {
     if (!sections.length) return;
@@ -98,20 +100,20 @@ const CoursePreview: FC<CoursePreviewProps> = ({ courseId }) => {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[320px] items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-foreground" />
+      <div className='flex min-h-[320px] items-center justify-center'>
+        <div className='h-8 w-8 animate-spin rounded-full border-2 border-border border-t-foreground' />
       </div>
     );
   }
 
   if (isError || !course) {
     return (
-      <div className="rounded-[14px] border border-red-500/20 bg-red-500/5 px-6 py-10 text-center">
-        <p className="text-sm text-red-500">
+      <div className='rounded-[14px] border border-red-500/20 bg-red-500/5 px-6 py-10 text-center'>
+        <p className='text-sm text-red-500'>
           {getErrorMessage(error, "Unable to load course preview.")}
         </p>
-        <Link href="/dashboard/courses" className="mt-4 inline-block">
-          <Button variant="secondary" size="sm">
+        <Link href='/dashboard/courses' className='mt-4 inline-block'>
+          <Button variant='secondary' size='sm'>
             Back to courses
           </Button>
         </Link>
@@ -122,68 +124,74 @@ const CoursePreview: FC<CoursePreviewProps> = ({ courseId }) => {
   const totalVideos = contentData?.content?.length ?? 0;
 
   return (
-    <div className="space-y-8">
-      <div className="animate-fade-up flex flex-col gap-4 rounded-[14px] border border-accent/20 bg-accent-muted/40 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className='space-y-8'>
+      <div className='animate-fade-up flex flex-col gap-4 rounded-[14px] border border-accent/20 bg-accent-muted/40 px-5 py-4 sm:flex-row sm:items-center sm:justify-between'>
         <div>
-          <p className="label mb-1">Course preview</p>
-          <p className="text-[14px] text-muted">
+          <p className='label mb-1'>Course preview</p>
+          <p className='text-[14px] text-muted'>
             Review how your course and videos appear before publishing changes.
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Link href="/dashboard/courses">
-            <Button variant="secondary" size="sm">
+        <div className='flex flex-wrap gap-2'>
+          <Link href='/dashboard/courses'>
+            <Button variant='secondary' size='sm'>
               All courses
             </Button>
           </Link>
           <Link href={`/courses/${courseId}/learn`}>
-            <Button variant="secondary" size="sm">
+            <Button variant='secondary' size='sm'>
               Open player
             </Button>
           </Link>
           <Link href={`/dashboard/courses/${courseId}/edit`}>
-            <Button size="sm">Edit course</Button>
+            <Button size='sm'>Edit course</Button>
           </Link>
         </div>
       </div>
 
-      <div className="animate-fade-up grid gap-8 lg:grid-cols-[1fr_280px] lg:gap-10">
-        <div className="min-w-0">
-          <p className="label mb-3">{course.level}</p>
-          <h1 className="text-[1.75rem] font-semibold leading-[1.1] tracking-[-0.04em] sm:text-[2rem]">
+      <div className='animate-fade-up grid gap-8 lg:grid-cols-[1fr_280px] lg:gap-10'>
+        <div className='min-w-0'>
+          <p className='label mb-3'>{course.level}</p>
+          <h1 className='text-[1.75rem] font-semibold leading-[1.1] tracking-[-0.04em] sm:text-[2rem]'>
             {course.name}
           </h1>
-          <p className="mt-4 text-[15px] leading-[1.65] text-muted">{course.description}</p>
+          <p className='mt-4 text-[15px] leading-[1.65] text-muted'>
+            {course.description}
+          </p>
 
-          <div className="mt-6 grid grid-cols-3 gap-4 border-t border-border pt-6 sm:max-w-sm">
+          <div className='mt-6 grid grid-cols-3 gap-4 border-t border-border pt-6 sm:max-w-sm'>
             <div>
-              <p className="text-lg font-semibold tabular-nums">{sections.length}</p>
-              <p className="mt-0.5 text-[12px] text-muted">Sections</p>
+              <p className='text-lg font-semibold tabular-nums'>
+                {sections.length}
+              </p>
+              <p className='mt-0.5 text-[12px] text-muted'>Sections</p>
             </div>
             <div>
-              <p className="text-lg font-semibold tabular-nums">{totalVideos}</p>
-              <p className="mt-0.5 text-[12px] text-muted">Videos</p>
+              <p className='text-lg font-semibold tabular-nums'>
+                {totalVideos}
+              </p>
+              <p className='mt-0.5 text-[12px] text-muted'>Videos</p>
             </div>
             <div>
-              <p className="text-lg font-semibold tabular-nums">
+              <p className='text-lg font-semibold tabular-nums'>
                 {formatCoursePrice(course.price)}
               </p>
-              <p className="mt-0.5 text-[12px] text-muted">Price</p>
+              <p className='mt-0.5 text-[12px] text-muted'>Price</p>
             </div>
           </div>
         </div>
 
-        <div className="relative aspect-[16/10] overflow-hidden rounded-[14px] border border-border bg-surface lg:aspect-auto lg:h-44">
+        <div className='relative aspect-[16/10] overflow-hidden rounded-[14px] border border-border bg-surface lg:aspect-auto lg:h-44'>
           {course.thumbnail?.url ? (
             <Image
               src={course.thumbnail.url}
-              alt=""
+              alt=''
               fill
-              className="object-cover"
-              sizes="280px"
+              className='object-cover'
+              sizes='280px'
             />
           ) : (
-            <div className="flex h-full min-h-[140px] items-center justify-center text-[13px] text-muted">
+            <div className='flex h-full min-h-[140px] items-center justify-center text-[13px] text-muted'>
               No thumbnail
             </div>
           )}
@@ -191,21 +199,24 @@ const CoursePreview: FC<CoursePreviewProps> = ({ courseId }) => {
       </div>
 
       {activeVideo ? (
-        <div className="animate-fade-up-delay-1 grid gap-6 lg:grid-cols-[1fr_300px] lg:gap-8">
-          <div className="min-w-0">
-            <p className="label mb-2">{activeVideo.videoSection || "Video"}</p>
-            <h2 className="mb-4 text-[1.25rem] font-semibold tracking-[-0.02em]">
+        <div className='animate-fade-up-delay-1 grid gap-6 lg:grid-cols-[1fr_300px] lg:gap-8'>
+          <div className='min-w-0'>
+            <p className='label mb-2'>{activeVideo.videoSection || "Video"}</p>
+            <h2 className='mb-4 text-[1.25rem] font-semibold tracking-[-0.02em]'>
               {activeVideo.title}
             </h2>
-            <CourseVideoPlayer videoId={activeVideo.videoUrl} title={activeVideo.title} />
+            <CourseVideoPlayer
+              videoId={activeVideo.videoUrl}
+              title={activeVideo.title}
+            />
             {activeVideo.description && (
-              <p className="mt-4 text-[14px] leading-relaxed text-muted">
+              <p className='mt-4 text-[14px] leading-relaxed text-muted'>
                 {activeVideo.description}
               </p>
             )}
           </div>
 
-          <div className="min-h-[320px] overflow-hidden rounded-[14px] border border-border lg:min-h-[480px]">
+          <div className='min-h-[320px] overflow-hidden rounded-[14px] border border-border lg:min-h-[480px]'>
             <CoursePlayerSidebar
               sections={sections}
               activeVideoId={activeVideoId}
@@ -216,34 +227,39 @@ const CoursePreview: FC<CoursePreviewProps> = ({ courseId }) => {
           </div>
         </div>
       ) : (
-        <div className="animate-fade-up-delay-1 rounded-[14px] border border-dashed border-border bg-card px-6 py-12 text-center">
-          <p className="text-sm text-muted">No videos added to this course yet.</p>
-          <Link href={`/dashboard/courses/${courseId}/edit`} className="mt-4 inline-block">
-            <Button size="sm">Add videos</Button>
+        <div className='animate-fade-up-delay-1 rounded-[14px] border border-dashed border-border bg-card px-6 py-12 text-center'>
+          <p className='text-sm text-muted'>
+            No videos added to this course yet.
+          </p>
+          <Link
+            href={`/dashboard/courses/${courseId}/edit`}
+            className='mt-4 inline-block'
+          >
+            <Button size='sm'>Add videos</Button>
           </Link>
         </div>
       )}
 
       {sections.length > 0 && (
-        <section className="animate-fade-up-delay-2 border-t border-border pt-8">
-          <p className="label mb-4">Full curriculum</p>
-          <div className="grid gap-3 sm:grid-cols-2">
+        <section className='animate-fade-up-delay-2 border-t border-border pt-8'>
+          <p className='label mb-4'>Full curriculum</p>
+          <div className='grid gap-3 sm:grid-cols-2'>
             {sections.map((section) => (
               <div
                 key={section.key}
-                className="rounded-[14px] border border-border bg-card p-4"
+                className='rounded-[14px] border border-border bg-card p-4'
               >
-                <p className="text-[14px] font-medium">{section.title}</p>
-                <ul className="mt-3 space-y-2">
+                <p className='text-[14px] font-medium'>{section.title}</p>
+                <ul className='mt-3 space-y-2'>
                   {section.videos.map((video) => (
                     <li key={video.key}>
                       <button
-                        type="button"
+                        type='button'
                         onClick={() => selectVideo(video.key)}
-                        className="flex w-full items-center justify-between rounded-[8px] px-2 py-1.5 text-left text-[13px] text-muted transition-colors hover:bg-surface hover:text-foreground"
+                        className='flex w-full items-center justify-between rounded-[8px] px-2 py-1.5 text-left text-[13px] text-muted transition-colors hover:bg-surface hover:text-foreground'
                       >
-                        <span className="truncate pr-3">{video.title}</span>
-                        <span className="shrink-0 tabular-nums">
+                        <span className='truncate pr-3'>{video.title}</span>
+                        <span className='shrink-0 tabular-nums'>
                           {formatVideoDuration(video.videoLength)}
                         </span>
                       </button>

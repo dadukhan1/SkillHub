@@ -1,3 +1,5 @@
+/** @format */
+
 "use client";
 
 import { FC, useEffect, useMemo, useState } from "react";
@@ -6,6 +8,7 @@ import CoursePlayerShell from "@/app/components/course-player/CoursePlayerShell"
 import CoursePlayerSidebar from "@/app/components/course-player/CoursePlayerSidebar";
 import CourseVideoPlayer from "@/app/components/course-player/CourseVideoPlayer";
 import CourseReviews from "@/app/components/course-player/CourseReviews";
+import VideoQA from "@/app/components/course-player/VideoQA";
 import Button from "@/app/components/ui/Button";
 import {
   findVideoInCurriculum,
@@ -23,7 +26,8 @@ interface CoursePlayerProps {
 const CoursePlayer: FC<CoursePlayerProps> = ({ courseId }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { data, isLoading, isError, error } = useGetCourseContentQuery(courseId);
+  const { data, isLoading, isError, error } =
+    useGetCourseContentQuery(courseId);
 
   const sections = useMemo(
     () => groupContentBySection(data?.content ?? []),
@@ -31,9 +35,9 @@ const CoursePlayer: FC<CoursePlayerProps> = ({ courseId }) => {
   );
 
   const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
-  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>(
-    {},
-  );
+  const [collapsedSections, setCollapsedSections] = useState<
+    Record<string, boolean>
+  >({});
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -69,14 +73,17 @@ const CoursePlayer: FC<CoursePlayerProps> = ({ courseId }) => {
 
   const activeIndex = activeVideo
     ? flatVideos.findIndex(
-        (video) => video.key === activeVideo.key || video._id === activeVideo._id,
+        (video) =>
+          video.key === activeVideo.key || video._id === activeVideo._id,
       )
     : -1;
 
   const goToVideo = (videoId: string) => {
     setActiveVideoId(videoId);
     setSidebarOpen(false);
-    router.replace(`/courses/${courseId}/learn?video=${videoId}`, { scroll: false });
+    router.replace(`/courses/${courseId}/learn?video=${videoId}`, {
+      scroll: false,
+    });
   };
 
   const goToAdjacent = (direction: -1 | 1) => {
@@ -93,10 +100,10 @@ const CoursePlayer: FC<CoursePlayerProps> = ({ courseId }) => {
 
   if (isLoading) {
     return (
-      <div className="flex h-dvh items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-border border-t-foreground" />
-          <p className="mt-4 text-sm text-muted">Loading course player…</p>
+      <div className='flex h-dvh items-center justify-center bg-background'>
+        <div className='text-center'>
+          <div className='mx-auto h-8 w-8 animate-spin rounded-full border-2 border-border border-t-foreground' />
+          <p className='mt-4 text-sm text-muted'>Loading course player…</p>
         </div>
       </div>
     );
@@ -104,15 +111,15 @@ const CoursePlayer: FC<CoursePlayerProps> = ({ courseId }) => {
 
   if (isError || !data?.course) {
     return (
-      <div className="flex h-dvh items-center justify-center bg-background px-6">
-        <div className="max-w-md text-center">
-          <p className="text-sm text-red-500">
+      <div className='flex h-dvh items-center justify-center bg-background px-6'>
+        <div className='max-w-md text-center'>
+          <p className='text-sm text-red-500'>
             {getErrorMessage(error, "Unable to load this course.")}
           </p>
           <Button
-            variant="secondary"
-            size="sm"
-            className="mt-4"
+            variant='secondary'
+            size='sm'
+            className='mt-4'
             onClick={() => router.push(`/courses/${courseId}`)}
           >
             Back to course
@@ -125,8 +132,8 @@ const CoursePlayer: FC<CoursePlayerProps> = ({ courseId }) => {
   if (!activeVideo) {
     return (
       <CoursePlayerShell courseName={data.course.name} courseId={courseId}>
-        <div className="flex h-full items-center justify-center px-6">
-          <p className="text-sm text-muted">This course has no videos yet.</p>
+        <div className='flex h-full items-center justify-center px-6'>
+          <p className='text-sm text-muted'>This course has no videos yet.</p>
         </div>
       </CoursePlayerShell>
     );
@@ -134,12 +141,12 @@ const CoursePlayer: FC<CoursePlayerProps> = ({ courseId }) => {
 
   return (
     <CoursePlayerShell courseName={data.course.name} courseId={courseId}>
-      <div className="flex h-full min-h-0">
+      <div className='flex h-full min-h-0'>
         {sidebarOpen && (
           <button
-            type="button"
-            aria-label="Close curriculum"
-            className="fixed inset-0 z-40 bg-black/40 lg:hidden"
+            type='button'
+            aria-label='Close curriculum'
+            className='fixed inset-0 z-40 bg-black/40 lg:hidden'
             onClick={() => setSidebarOpen(false)}
           />
         )}
@@ -158,52 +165,67 @@ const CoursePlayer: FC<CoursePlayerProps> = ({ courseId }) => {
           />
         </div>
 
-        <main className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain">
-          <div className="mx-auto max-w-5xl px-4 py-5 sm:px-6 sm:py-8">
-            <div className="mb-4 flex items-center justify-between gap-3 lg:hidden">
+        <main className='min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain'>
+          <div className='mx-auto max-w-5xl px-4 py-5 sm:px-6 sm:py-8'>
+            <div className='mb-4 flex items-center justify-between gap-3 lg:hidden'>
               <button
-                type="button"
+                type='button'
                 onClick={() => setSidebarOpen(true)}
-                className="rounded-[10px] border border-border bg-card px-3 py-2 text-[13px] font-medium text-foreground"
+                className='rounded-[10px] border border-border bg-card px-3 py-2 text-[13px] font-medium text-foreground'
               >
                 Curriculum
               </button>
             </div>
 
-            <div className="animate-fade-up">
-              <p className="label mb-3">{activeVideo.videoSection || "Lesson"}</p>
-              <h1 className="text-[1.5rem] font-semibold leading-[1.15] tracking-[-0.03em] sm:text-[1.75rem]">
+            <div className='animate-fade-up'>
+              <p className='label mb-3'>
+                {activeVideo.videoSection || "Lesson"}
+              </p>
+              <h1 className='text-[1.5rem] font-semibold leading-[1.15] tracking-[-0.03em] sm:text-[1.75rem]'>
                 {activeVideo.title}
               </h1>
             </div>
 
-            <div className="animate-fade-up-delay-1 mt-6">
-              <CourseVideoPlayer videoId={activeVideo.videoUrl} title={activeVideo.title} />
+            <div className='animate-fade-up-delay-1 mt-6'>
+              <CourseVideoPlayer
+                videoId={activeVideo.videoUrl}
+                title={activeVideo.title}
+              />
             </div>
 
-            {activeVideo.description && (
-              <p className="animate-fade-up-delay-2 mt-5 text-[15px] leading-[1.65] text-muted">
-                {activeVideo.description}
-              </p>
-            )}
-
-            <div className="animate-fade-up-delay-3 mt-8 flex flex-col gap-3 border-t border-border pt-6 sm:flex-row sm:justify-between">
+            <div className='animate-fade-up-delay-2 mt-6 flex flex-col gap-3 border-b border-border pb-6 sm:flex-row sm:justify-between'>
               <Button
-                variant="secondary"
-                size="sm"
+                variant='secondary'
+                size='sm'
                 disabled={activeIndex <= 0}
                 onClick={() => goToAdjacent(-1)}
               >
                 Previous video
               </Button>
               <Button
-                size="sm"
+                size='sm'
                 disabled={activeIndex >= flatVideos.length - 1}
                 onClick={() => goToAdjacent(1)}
               >
                 Next video
               </Button>
             </div>
+
+            {/* Q&A Section */}
+            <div className='animate-fade-up-delay-3 mt-6'>
+              <VideoQA
+                courseId={courseId}
+                contentId={activeVideo._id ?? activeVideo.key}
+                questions={activeVideo.questions || []}
+              />
+            </div>
+
+            {activeVideo.description && (
+              <p className='animate-fade-up-delay-4 mt-6 text-[15px] leading-[1.65] text-muted'>
+                {activeVideo.description}
+              </p>
+            )}
+            
 
             <CourseReviews courseId={courseId} hideList={true} />
           </div>

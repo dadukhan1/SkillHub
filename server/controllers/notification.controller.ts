@@ -1,16 +1,22 @@
 /** @format */
 
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import catchAsyncErrors from "../middleware/catchAsyncErrors";
 import NotificationModel from "../models/notification.model";
+import ErrorHandler from "../utils/ErrorHandler";
 import cron from "node-cron";
 
-// get all notifications
+const adminAudienceFilter = {
+  $or: [{ audience: "admin" }, { audience: { $exists: false } }],
+};
+
+const getAdminNotifications = () =>
+  NotificationModel.find(adminAudienceFilter).sort({ createdAt: -1 });
+
 export const getAllNotifications = catchAsyncErrors(
   async (req: Request, res: Response) => {
-    const notifications = await NotificationModel.find().sort({
-      createdAt: -1,
-    });
+    const notifications = await getAdminNotifications();
+
     return res.status(200).json({
       success: true,
       notifications,
@@ -18,25 +24,21 @@ export const getAllNotifications = catchAsyncErrors(
   },
 );
 
-// update notification status --- admin only
 export const updateNotification = catchAsyncErrors(
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.params;
 
-    const notification = await NotificationModel.findById(id);
+    const notification = await NotificationModel.findOneAndUpdate(
+      { _id: id, ...adminAudienceFilter },
+      { status: "read" },
+      { new: true },
+    );
 
     if (!notification) {
-      return res.status(404).json({
-        success: false,
-        message: "Notification not found",
-      });
+      return next(new ErrorHandler("Notification not found", 404));
     }
-    notification.status = "read";
-    await notification.save();
 
-    const notifications = await NotificationModel.find().sort({
-      createdAt: -1,
-    });
+    const notifications = await getAdminNotifications();
 
     return res.status(200).json({
       success: true,
@@ -45,7 +47,22 @@ export const updateNotification = catchAsyncErrors(
   },
 );
 
-// delete notification  --- admin only
+export const markAllNotificationsRead = catchAsyncErrors(
+  async (req: Request, res: Response) => {
+    await NotificationModel.updateMany(
+      { ...adminAudienceFilter, status: "unread" },
+      { status: "read" },
+    );
+
+    const notifications = await getAdminNotifications();
+
+    return res.status(200).json({
+      success: true,
+      notifications,
+    });
+  },
+);
+
 cron.schedule("0 0 0 * * *", async () => {
   const thirtyDayAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
   await NotificationModel.deleteMany({

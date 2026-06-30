@@ -5,8 +5,9 @@ import { Model, model, Schema } from "mongoose";
 export interface INotification {
   title: string;
   message: string;
-  status: string;
-  user: string;
+  status: "unread" | "read";
+  user?: string;
+  audience: "admin" | "user";
 }
 
 const notificationSchema = new Schema<INotification>(
@@ -21,8 +22,16 @@ const notificationSchema = new Schema<INotification>(
     },
     status: {
       type: String,
-      required: true,
+      enum: ["unread", "read"],
       default: "unread",
+    },
+    user: {
+      type: String,
+    },
+    audience: {
+      type: String,
+      enum: ["admin", "user"],
+      default: "admin",
     },
   },
   { timestamps: true },

@@ -5,7 +5,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { adminNavItems, isAdminNavActive } from "@/lib/admin-nav";
+import { isAdmin } from "@/lib/user";
 import { useAuth } from "@/redux/hooks";
+import { useGetAllNotificationsQuery } from "@/redux/features/notificationApiSlice";
 import ThemeToggle from "../ThemeToggle";
 import UserProfileMenu from "../layout/UserProfileMenu";
 
@@ -17,6 +19,16 @@ interface SidebarProps {
 const Sidebar: FC<SidebarProps> = ({ mobileOpen = false, onNavigate }) => {
   const pathname = usePathname();
   const { user } = useAuth();
+  const isAdminUser = user ? isAdmin(user.role) : false;
+
+  const { data: notificationsData } = useGetAllNotificationsQuery(undefined, {
+    skip: !isAdminUser,
+    pollingInterval: 30000,
+  });
+
+  const unreadCount =
+    notificationsData?.notifications.filter((item) => item.status === "unread")
+      .length ?? 0;
 
   return (
     <aside
@@ -87,14 +99,21 @@ const Sidebar: FC<SidebarProps> = ({ mobileOpen = false, onNavigate }) => {
               href={item.href}
               onClick={onNavigate}
               className={cn(
-                "flex items-center gap-2.5 rounded-[10px] px-3 py-2.5 text-[13px] transition-colors duration-200",
+                "flex items-center justify-between gap-2 rounded-[10px] px-3 py-2.5 text-[13px] transition-colors duration-200",
                 isActive
                   ? "bg-surface font-medium text-foreground"
                   : "text-muted hover:bg-surface hover:text-foreground",
               )}
             >
-              {item.icon}
-              {item.label}
+              <span className='flex items-center gap-2.5'>
+                {item.icon}
+                {item.label}
+              </span>
+              {item.href === "/dashboard/notifications" && unreadCount > 0 && (
+                <span className='rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold text-primary-foreground'>
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
             </Link>
           );
         })}

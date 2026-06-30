@@ -73,7 +73,8 @@ export const stripeWebhook = async (req: Request, res: Response) => {
         await NotificationModel.create({
           user: userId,
           title: "New Order",
-          message: `You have a new order for the course: ${course.name}`,
+          message: `New purchase for ${course.name}.`,
+          audience: "admin",
         });
 
         const mailData = {

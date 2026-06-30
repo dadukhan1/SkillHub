@@ -2,6 +2,7 @@
 
 import { FC, ReactNode, useEffect, useState } from "react";
 import Sidebar from "@/app/components/dashboard/Sidebar";
+import AdminNotificationBell from "@/app/components/admin/AdminNotificationBell";
 import ThemeToggle from "@/app/components/ThemeToggle";
 import UserProfileMenu from "@/app/components/layout/UserProfileMenu";
 import Link from "next/link";
@@ -78,6 +79,7 @@ const DashboardLayoutShell: FC<DashboardLayoutShellProps> = ({ children }) => {
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
+            <AdminNotificationBell compact />
             <ThemeToggle />
             <UserProfileMenu variant="header" compact />
           </div>

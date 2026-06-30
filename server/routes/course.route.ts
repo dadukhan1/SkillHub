@@ -2,6 +2,7 @@
 
 import express from "express";
 import {
+  addAnswer,
   addQuestion,
   addReview,
   addReviewReply,
@@ -58,9 +59,13 @@ courseRouter.delete(
   authorizeRoles("admin"),
   deleteCourse,
 );
-courseRouter.post(
-  "/generate-video-url",
-  generateVideoUrl,
+courseRouter.post("/generate-video-url", generateVideoUrl);
+courseRouter.put("/add-question", isAuthenticated, addQuestion);
+courseRouter.put(
+  "/add-answer",
+  isAuthenticated,
+  authorizeRoles("admin"),
+  addAnswer,
 );
 
 export default courseRouter;
