@@ -232,14 +232,16 @@ export const addQuestion = catchAsyncErrors(
     const savedQuestion =
       courseContent.questions[courseContent.questions.length - 1];
 
-    const notification = NotificationModel.create({
+    const notification = await NotificationModel.create({
       user: req.user?._id.toString(),
       title: "New Question",
       message: `${req.user?.name} has asked a new question in ${courseContent.title}.`,
       audience: "admin",
     });
 
-    io!.emit("newNotification", notification);
+    if (io) {
+      io.emit("newNotification", notification);
+    }
 
     return res.status(200).json({
       success: true,
