@@ -13,14 +13,18 @@ import notificationRouter from "./routes/notification.route";
 import analyticsRouter from "./routes/analytics.route";
 import layoutRouter from "./routes/layout.route";
 import connectDB from "./utils/db";
+import ErrorHandler from "./utils/ErrorHandler";
 
-connectDB();
-
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    next(new ErrorHandler("Database connection failed", 500));
+  }
+});
 // Stripe webhook needs raw body — must be before express.json()
-app.use(
-  "/api/v1/payment/webhook",
-  express.raw({ type: "application/json" }),
-);
+app.use("/api/v1/payment/webhook", express.raw({ type: "application/json" }));
 
 app.use(express.json({ limit: "50mb" }));
 app.use(cookieParser());
