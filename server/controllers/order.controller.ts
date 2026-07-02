@@ -10,6 +10,7 @@ import { sendMail } from "../utils/sendMail";
 import NotificationModel from "../models/notification.model";
 import Stripe from "stripe";
 import { redis } from "../utils/redis";
+import { initSocketServer, io } from "../sockerServer";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
@@ -55,9 +56,7 @@ export const stripeWebhook = async (req: Request, res: Response) => {
       }
 
       // Idempotency: skip if user already has the course
-      const alreadyOwned = user.courses.some(
-        (c) => c.courseId === courseId,
-      );
+      const alreadyOwned = user.courses.some((c) => c.courseId === courseId);
       if (!alreadyOwned) {
         await userModel.updateOne(
           { _id: userId },
@@ -70,12 +69,14 @@ export const stripeWebhook = async (req: Request, res: Response) => {
 
         await newOrder({ courseId, userId });
 
-        await NotificationModel.create({
+        const newNotification = await NotificationModel.create({
           user: userId,
           title: "New Order",
           message: `New purchase for ${course.name}.`,
           audience: "admin",
         });
+
+        io!.emit("newNotification", newNotification);
 
         const mailData = {
           order: {
@@ -98,12 +99,7 @@ export const stripeWebhook = async (req: Request, res: Response) => {
         });
 
         const updatedUser = await userModel.findById(userId);
-        await redis.set(
-          userId,
-          JSON.stringify(updatedUser),
-          "EX",
-          604800,
-        );
+        await redis.set(userId, JSON.stringify(updatedUser), "EX", 604800);
       }
     } catch (err) {
       console.error("Webhook: failed to process order", err);

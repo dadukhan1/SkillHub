@@ -11,6 +11,7 @@ import mongoose from "mongoose";
 import { sendMail } from "../utils/sendMail";
 import NotificationModel from "../models/notification.model";
 import axios from "axios";
+import { io } from "../sockerServer";
 
 export const uploadCourse = catchAsyncErrors(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -231,12 +232,14 @@ export const addQuestion = catchAsyncErrors(
     const savedQuestion =
       courseContent.questions[courseContent.questions.length - 1];
 
-    void NotificationModel.create({
+    const notification = NotificationModel.create({
       user: req.user?._id.toString(),
       title: "New Question",
       message: `${req.user?.name} has asked a new question in ${courseContent.title}.`,
       audience: "admin",
-    }).catch(() => {});
+    });
+
+    io!.emit("newNotification", notification);
 
     return res.status(200).json({
       success: true,
@@ -352,8 +355,10 @@ export const addReview = catchAsyncErrors(
 
     const courseId = req.params.id;
 
-    const courseExists = userCoursesList?.find((course: any) =>
-      course.courseId?.toString() === courseId || course._id?.toString() === courseId,
+    const courseExists = userCoursesList?.find(
+      (course: any) =>
+        course.courseId?.toString() === courseId ||
+        course._id?.toString() === courseId,
     );
 
     if (!courseExists) {
@@ -363,11 +368,13 @@ export const addReview = catchAsyncErrors(
     const course = await CourseModel.findById(courseId);
 
     const isReviewExists = course?.reviews?.find(
-      (rev: any) => rev.user._id.toString() === req.user?._id.toString()
+      (rev: any) => rev.user._id.toString() === req.user?._id.toString(),
     );
 
     if (isReviewExists) {
-      return next(new ErrorHandler("You have already reviewed this course", 400));
+      return next(
+        new ErrorHandler("You have already reviewed this course", 400),
+      );
     }
 
     const reviewData = {
